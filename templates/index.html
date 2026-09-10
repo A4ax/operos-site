@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <meta name="description" content="{{ site_description }}">
+    <meta name="keywords" content="AI tools, software reviews, best tools, productivity, comparisons">
+    
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ site_description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://{{ site_domain }}/">
+    <meta property="og:site_name" content="{{ site_name }}">
+    
+    <link rel="canonical" href="https://{{ site_domain }}/">
+    <link rel="alternate" type="application/rss+xml" title="{{ site_name }} Feed" href="/feed.xml">
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "{{ site_name }}",
+        "url": "https://{{ site_domain }}",
+        "description": "{{ site_description }}",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://{{ site_domain }}/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+</head>
+<body>
+    <header class="site-header">
+        <nav class="container nav-container">
+            <a href="/" class="logo">{{ site_name }}</a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                {% for cat in categories %}
+                <li><a href="/categories/{{ cat|lower|replace(' ', '-') }}.html">{{ cat }}</a></li>
+                {% endfor %}
+            </ul>
+            <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('active')">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+    </header>
+    
+    <main class="container main-content">
+        <section class="hero">
+            <h1>{{ site_description }}</h1>
+            <p class="hero-subtitle">Honest reviews, in-depth comparisons, and expert recommendations for the best AI tools and software.</p>
+            <div class="search-box">
+                <input type="text" placeholder="Search for tools..." class="search-input">
+                <button class="search-btn">Search</button>
+            </div>
+        </section>
+        
+        <section class="featured-articles">
+            <h2>Featured Reviews</h2>
+            <div class="article-grid">
+                {% for article in featured %}
+                <article class="article-card">
+                    <div class="card-category">{{ article.category }}</div>
+                    <h3><a href="/posts/{{ article.slug }}.html">{{ article.title }}</a></h3>
+                    <div class="card-meta">
+                        <span>{{ article.estimated_read_time }} min read</span>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        
+        <section class="latest-articles">
+            <h2>Latest Articles</h2>
+            <div class="article-list">
+                {% for article in recent %}
+                <article class="article-list-item">
+                    <div class="list-category">{{ article.category }}</div>
+                    <h3><a href="/posts/{{ article.slug }}.html">{{ article.title }}</a></h3>
+                    <div class="list-meta">
+                        <span>{{ article.published_at[:10] }}</span>
+                        <span>{{ article.estimated_read_time }} min read</span>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            <a href="#" class="load-more">Load More Articles</a>
+        </section>
+        
+        <section class="categories-section">
+            <h2>Browse by Category</h2>
+            <div class="category-grid">
+                {% for cat in categories %}
+                <a href="/categories/{{ cat|lower|replace(' ', '-') }}.html" class="category-card">
+                    <h3>{{ cat }}</h3>
+                    <span class="article-count">{{ recent|selectattr('category', 'equalto', cat)|list|length }} articles</span>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        
+        <section class="ad-section">
+            <div class="ad-placeholder">
+                <p>Advertisement</p>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>{{ site_name }}</h4>
+                    <p>{{ site_description }}</p>
+                    <p>{{ total_articles }} articles and counting</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Categories</h4>
+                    <ul>
+                        {% for cat in categories[:5] %}
+                        <li><a href="/categories/{{ cat|lower|replace(' ', '-') }}.html">{{ cat }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="/privacy.html">Privacy Policy</a></li>
+                        <li><a href="/terms.html">Terms of Service</a></li>
+                        <li><a href="/affiliate-disclosure.html">Affiliate Disclosure</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; {{ current_year }} {{ site_name }}. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

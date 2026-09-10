@@ -1,0 +1,127 @@
+{
+  "site": {
+    "name": "Operos",
+    "domain": "operos.de",
+    "description": "Your guide to the best AI tools and software for work, creativity, and productivity",
+    "language": "en",
+    "locale": "en_US",
+    "timezone": "Europe/Berlin"
+  },
+  "seo": {
+    "target_keywords": [
+      "best AI tools",
+      "AI software comparison",
+      "best software for",
+      "tool review",
+      "alternative to",
+      "free AI tools",
+      "AI writing tools",
+      "productivity software",
+      "AI video editor",
+      "project management tools"
+    ],
+    "min_article_length": 1500,
+    "articles_per_batch": 5,
+    "batch_interval_hours": 6
+  },
+  "affiliate": {
+    "programs": {
+      "notion": {
+        "name": "Notion",
+        "url": "https://www.notion.so/product/personal-plan",
+        "commission": "25%",
+        "category": "productivity"
+      },
+      "canva": {
+        "name": "Canva",
+        "url": "https://www.canva.com/pricing/",
+        "commission": "20%",
+        "category": "design"
+      },
+      "grammarly": {
+        "name": "Grammarly",
+        "url": "https://www.grammarly.com/pricing",
+        "commission": "20%",
+        "category": "writing"
+      },
+      "clickup": {
+        "name": "ClickUp",
+        "url": "https://clickup.com/pricing",
+        "commission": "25%",
+        "category": "productivity"
+      },
+      " Jasper": {
+        "name": "Jasper AI",
+        "url": "https://www.jasper.ai/pricing",
+        "commission": "30%",
+        "category": "content"
+      },
+      "midjourney": {
+        "name": "Midjourney",
+        "url": "https://www.midjourney.com/pricing",
+        "commission": "direct",
+        "category": "design"
+      },
+      "surferseo": {
+        "name": "Surfer SEO",
+        "url": "https://surferseo.com/pricing",
+        "commission": "25%",
+        "category": "seo"
+      },
+      "hostinger": {
+        "name": "Hostinger",
+        "url": "https://www.hostinger.com/web-hosting",
+        "commission": "60%",
+        "category": "hosting"
+      }
+    }
+  },
+  "reddit": {
+    "subreddits": [
+      "ArtificialIntelligence",
+      "SaaS",
+      "programming",
+      "startups",
+      "productivity",
+      "ChatGPT",
+      "localLLaMA",
+      "design",
+      "web_design",
+      "marketing"
+    ],
+    "max_posts_per_subreddit": 25,
+    "sort_by": "hot",
+    "time_filter": "week"
+  },
+  "content": {
+    "categories": [
+      "AI Tools",
+      "Software Reviews",
+      "Comparisons",
+      "How-to Guides",
+      "Productivity",
+      "Web Development",
+      "Design Tools",
+      "Marketing Tools",
+      "Writing Tools",
+      "Video & Audio"
+    ],
+    "tone": "professional, helpful, unbiased",
+    "include_disclosure": true,
+    "affiliate_link_density": 3
+  },
+  "deployment": {
+    "github_repo": "operos-de/operos-site",
+    "github_branch": "main",
+    "output_dir": "output",
+    "templates_dir": "templates",
+    "static_dir": "static"
+  },
+  "scheduler": {
+    "run_every_hours": 6,
+    "max_articles_per_run": 5,
+    "max_total_articles": 2000,
+    "health_check_interval_minutes": 30,
+    "windows_service_name": "OperosContentEngine"
+  }
+}

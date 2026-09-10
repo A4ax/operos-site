@@ -1,0 +1,9 @@
+aiohttp
+beautifulsoup4
+jinja2
+feedgen
+schedule
+requests
+python-dotenv
+markdown2
+lxml

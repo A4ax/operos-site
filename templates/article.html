@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <meta name="description" content="{{ meta_description if meta_description else site_description }}">
+    <meta name="keywords" content="{{ keywords|join(', ') if keywords else '' }}">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ meta_description if meta_description else site_description }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://{{ site_domain }}/posts/{{ slug }}.html">
+    <meta property="og:site_name" content="{{ site_name }}">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ title }}">
+    <meta name="twitter:description" content="{{ meta_description if meta_description else site_description }}">
+    
+    <!-- Canonical -->
+    <link rel="canonical" href="https://{{ site_domain }}/posts/{{ slug }}.html">
+    
+    <!-- RSS -->
+    <link rel="alternate" type="application/rss+xml" title="{{ site_name }} Feed" href="/feed.xml">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "{{ title }}",
+        "description": "{{ meta_description if meta_description else site_description }}",
+        "author": {
+            "@type": "Person",
+            "name": "{{ author }}"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "{{ site_name }}",
+            "url": "https://{{ site_domain }}"
+        },
+        "datePublished": "{{ published_at }}",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://{{ site_domain }}/posts/{{ slug }}.html"
+        }
+    }
+    </script>
+</head>
+<body>
+    <header class="site-header">
+        <nav class="container nav-container">
+            <a href="/" class="logo">{{ site_name }}</a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                {% for cat in categories %}
+                <li><a href="/categories/{{ cat|lower|replace(' ', '-') }}.html">{{ cat }}</a></li>
+                {% endfor %}
+            </ul>
+            <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('active')">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+    </header>
+    
+    <main class="container main-content">
+        <article class="article-page">
+            <div class="article-header">
+                <span class="article-category">{{ category }}</span>
+                <h1 class="article-title">{{ title }}</h1>
+                <div class="article-meta">
+                    <span class="article-author">By {{ author }}</span>
+                    <span class="article-date">{{ published_at[:10] }}</span>
+                    <span class="read-time">{{ estimated_read_time }} min read</span>
+                </div>
+            </div>
+            
+            <div class="article-body">
+                {{ content|safe }}
+            </div>
+            
+            {{ affiliate_disclosure|safe }}
+            
+            <div class="article-share">
+                <h3>Share this article:</h3>
+                <a href="https://twitter.com/intent/tweet?url=https://{{ site_domain }}/posts/{{ slug }}.html&text={{ title }}" target="_blank" class="share-btn twitter">Twitter</a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=https://{{ site_domain }}/posts/{{ slug }}.html" target="_blank" class="share-btn facebook">Facebook</a>
+                <a href="https://www.linkedin.com/shareArticle?url=https://{{ site_domain }}/posts/{{ slug }}.html&title={{ title }}" target="_blank" class="share-btn linkedin">LinkedIn</a>
+            </div>
+        </article>
+        
+        <aside class="sidebar">
+            <div class="sidebar-widget">
+                <h3>Categories</h3>
+                <ul class="category-list">
+                    {% for cat in categories %}
+                    <li><a href="/categories/{{ cat|lower|replace(' ', '-') }}.html">{{ cat }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="sidebar-widget ad-widget">
+                <div class="ad-placeholder">
+                    <p>Advertisement</p>
+                </div>
+            </div>
+        </aside>
+    </main>
+    
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>{{ site_name }}</h4>
+                    <p>{{ site_description }}</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Categories</h4>
+                    <ul>
+                        {% for cat in categories[:5] %}
+                        <li><a href="/categories/{{ cat|lower|replace(' ', '-') }}.html">{{ cat }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="/privacy.html">Privacy Policy</a></li>
+                        <li><a href="/terms.html">Terms of Service</a></li>
+                        <li><a href="/affiliate-disclosure.html">Affiliate Disclosure</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; {{ current_year }} {{ site_name }}. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Google Analytics placeholder -->
+    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script> -->
+</body>
+</html>
