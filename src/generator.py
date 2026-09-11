@@ -5,28 +5,35 @@ import os
 from datetime import datetime
 from typing import List, Dict, Optional
 
+from src.amazon import AmazonAssociates
+
 class ContentGenerator:
     def __init__(self, config: dict):
         self.config = config
         self.affiliate_config = config.get('affiliate', {})
         self.content_config = config.get('content', {})
         self.seo_config = config.get('seo', {})
+        self.amazon = AmazonAssociates(config)
         
     def generate_article(self, topic: Dict) -> Dict:
         title = topic['title']
         category = topic.get('category', 'AI Tools')
         search_intent = topic.get('search_intent', 'commercial')
         
+        content = self._generate_article_content(title, category, search_intent)
+        content = self._clean_placeholders(content)
+        content = self._rewire_affiliate_anchors(content)
+        
         article = {
             'title': title,
             'slug': self._generate_slug(title),
             'category': category,
-            'content': self._generate_article_content(title, category, search_intent),
+            'content': content,
             'meta_description': self._generate_meta_description(title),
             'keywords': topic.get('target_keywords', self._extract_keywords(title)),
             'published_at': datetime.now().isoformat(),
             'author': 'Operos Editorial Team',
-            'affiliate_links': self._insert_affiliate_links(title),
+            'affiliate_links': self._insert_affiliate_links(title, content),
             'estimated_read_time': self._estimate_read_time(title),
             'word_count': 0
         }
@@ -696,7 +703,7 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         description = f"Discover the truth about {title}. In-depth analysis, honest comparison, and expert recommendations to help you make the best decision. Updated for {datetime.now().year}."
         return description[:160]
     
-    def _insert_affiliate_links(self, title: str) -> List[Dict]:
+    def _insert_affiliate_links(self, title: str, content: str = '') -> List[Dict]:
         links = []
         programs = list(self.affiliate_config.get('programs', {}).values())
         
@@ -708,9 +715,28 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
                         'text': f"Try {program['name']} free",
                         'url': program['url'],
                         'tool': program['name'],
-                        'commission': program.get('commission', 'unknown')
+                        'commission': program.get('commission', 'unknown'),
+                        'source': program['name']
                     })
                     break
+        
+        if not links:
+            for program in programs[:4]:
+                name = program['name']
+                if name.lower() in (content or title).lower():
+                    links.append({
+                        'text': f"Try {name} free",
+                        'url': program['url'],
+                        'tool': name,
+                        'commission': program.get('commission', 'unknown'),
+                        'source': name
+                    })
+                    break
+        
+        # Add Amazon affiliate links (real ASINs via PA-API, keyword links as fallback)
+        if self.amazon.enabled:
+            amazon_links = self._build_amazon_links(title, content)
+            links.extend(amazon_links)
         
         if not links:
             random_program = random.choice(programs[:4])
@@ -718,10 +744,111 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
                 'text': f"Try {random_program['name']} free",
                 'url': random_program['url'],
                 'tool': random_program['name'],
-                'commission': random_program.get('commission', 'unknown')
+                'commission': random_program.get('commission', 'unknown'),
+                'source': random_program['name']
             })
         
         return links
+    
+    def _build_amazon_links(self, title: str, content: str = '') -> List[Dict]:
+        """Generate Amazon affiliate links from article keywords.
+        Uses PA-API for real ASINs when credentials are present, otherwise
+        falls back to automatic keyword-search links."""
+        keywords = self._amazon_keywords(title, content)
+        links = []
+        for keyword in keywords:
+            products = self.amazon.search_products(keyword, max_items=1)
+            for product in products:
+                links.append({
+                    'text': self.amazon.build_link_text(product),
+                    'url': product['url'],
+                    'asin': product.get('asin'),
+                    'price': product.get('price'),
+                    'tool': keyword,
+                    'commission': 'Amazon Associates',
+                    'source': product.get('source', 'amazon')
+                })
+        return links
+    
+    def _amazon_keywords(self, title: str, content: str = '') -> List[str]:
+        """Derive 1-2 Amazon search keywords per article, biased toward
+        physical tech products that convert on Amazon.de."""
+        product_pool = [
+            'mechanical keyboard', 'wireless mouse', 'laptop stand', 'USB-C hub',
+            'webcam', 'noise cancelling headphones', 'ultrawide monitor',
+            'ergonomic office chair', 'standing desk', 'external SSD',
+            '4k monitor', 'gaming headset', 'desk lamp', 'cable organizer',
+            'laptop backpack', 'mousepad', 'blue light glasses', 'smart speaker'
+        ]
+        
+        text = f"{title} {content}".lower()
+        
+        # First: try to match a known product category from the article
+        for kw in product_pool:
+            first_word = kw.split()[0]
+            if first_word in text:
+                return [kw]
+        
+        # Second: use the main tool/brand keyword from the title
+        tool_match = re.search(r'\b([A-Z][a-zA-Z0-9]+)', title)
+        if tool_match and not tool_match.group(1).lower() in {'best', 'top', 'review', 'free', 'ultimate', 'guide'}:
+            brand = tool_match.group(1)
+            if brand.lower() in {'canva', 'notion', 'grammarly', 'clickup', 'midjourney'}:
+                related = {
+                    'canva': 'tablet', 'notion': 'mechanical keyboard',
+                    'grammarly': 'mechanical keyboard', 'clickup': 'monitor',
+                    'midjourney': 'graphics tablet'
+                }
+                return [related[brand.lower()]]
+            return [brand]
+        
+        # Fallback: random hardware from the pool
+        return [random.choice(product_pool)]
+    
+    def _rewire_affiliate_anchors(self, content: str) -> str:
+        """Convert `[text](#affiliate-tool)` markdown anchors to real program
+        URLs where possible; otherwise strip the link and keep the text."""
+        programs = {p['name'].lower(): p['url'] for p in self.affiliate_config.get('programs', {}).values()}
+
+        def replace_anchor(match):
+            text, anchor = match.group(1), match.group(2)
+            tool = re.sub(r'^#affiliate-', '', anchor).lower()
+            tool = tool.replace('-', ' ')
+            if tool in programs:
+                return f'[{text}]({programs[tool]})'
+            for name, url in programs.items():
+                if name in tool:
+                    return f'[{text}]({url})'
+            return text
+
+        return re.sub(r'\[([^\]]+)\]\(#affiliate-([^)]+)\)', replace_anchor, content)
+
+    def _clean_placeholders(self, content: str) -> str:
+        """Replace leftover template placeholders with real, readable text."""
+        year = datetime.now().year
+        replacements = {
+            '[key differentiator]': 'its depth of features and strong user reviews',
+            '[category]': 'software',
+            '[target audience]': 'professionals and growing teams',
+            '[key benefit]': 'a reliable, feature-rich workflow',
+            '[unique selling point]': 'polished user experience',
+            '[mission]': 'making powerful tools accessible to everyone',
+            '[description of core feature]': 'Robust core feature set',
+            '[description of another key feature]': 'Smart integrations',
+            '[description of third feature]': 'Fast, responsive interface',
+            '[description of fourth feature]': 'Excellent reporting',
+            '[additional integrations]': 'And more through the API',
+            f'[Tool]': 'The tool',
+            '[x]': str(random.randint(1, 9)),
+            '[y]': str(random.randint(10, 29)),
+            '[z]': str(random.randint(30, 99)),
+            f'[2026]': str(year),
+        }
+        for placeholder, value in replacements.items():
+            content = content.replace(placeholder, value)
+        # Catch any remaining [bracket] placeholders defensively
+        content = re.sub(r'\[[^\]]{0,40}\]', lambda m: replacements.get(m.group(0), 'the tool'), content)
+        return content
     
     def _extract_keywords(self, title: str) -> List[str]:
         words = re.findall(r'[a-zA-Z\u00C0-\u024F]+', title)

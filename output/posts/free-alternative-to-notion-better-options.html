@@ -59,13 +59,13 @@
             <ul class="nav-links">
                 <li><a href="/">Home</a></li>
                 
-                <li><a href="/categories/how-to-guides.html">How-to Guides</a></li>
-                
                 <li><a href="/categories/software-reviews.html">Software Reviews</a></li>
                 
                 <li><a href="/categories/ai-tools.html">AI Tools</a></li>
                 
                 <li><a href="/categories/comparisons.html">Comparisons</a></li>
+                
+                <li><a href="/categories/how-to-guides.html">How-to Guides</a></li>
                 
             </ul>
             <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('active')">
@@ -237,6 +237,22 @@
 <p><em>Disclosure: We may earn a commission when you use our links to claim a discount or sign up for an account. This helps us keep our content free. Thank you for your support!</em></p>
             </div>
             
+            
+            <div class="affiliate-box">
+                <h3>Recommended Deals</h3>
+                <p class="affiliate-box-note">Some links below are affiliate links — we may earn a commission at no extra cost to you.</p>
+                <ul class="affiliate-list">
+                    
+                    <li>
+                        <a href="https://www.notion.so/product/personal-plan" target="_blank" rel="nofollow sponsored">Try Notion free</a>
+                        
+                        
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
             <div class="affiliate-disclosure">
     <p><strong>Disclosure:</strong> We may earn a commission when you use our links to claim a discount or sign up for an account. This helps us keep our content free. Thank you for your support!</p>
 </div>
@@ -254,21 +270,29 @@
                 <h3>Categories</h3>
                 <ul class="category-list">
                     
-                    <li><a href="/categories/how-to-guides.html">How-to Guides</a></li>
-                    
                     <li><a href="/categories/software-reviews.html">Software Reviews</a></li>
                     
                     <li><a href="/categories/ai-tools.html">AI Tools</a></li>
                     
                     <li><a href="/categories/comparisons.html">Comparisons</a></li>
                     
+                    <li><a href="/categories/how-to-guides.html">How-to Guides</a></li>
+                    
                 </ul>
             </div>
             
             <div class="sidebar-widget ad-widget">
-                <div class="ad-placeholder">
-                    <p>Advertisement</p>
-                </div>
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8252348486522857" crossorigin="anonymous"></script>
+                <!-- Operosads -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-8252348486522857"
+                     data-ad-slot="5134304927"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
             </div>
         </aside>
     </main>
@@ -284,32 +308,44 @@
                     <h4>Categories</h4>
                     <ul>
                         
-                        <li><a href="/categories/how-to-guides.html">How-to Guides</a></li>
-                        
                         <li><a href="/categories/software-reviews.html">Software Reviews</a></li>
                         
                         <li><a href="/categories/ai-tools.html">AI Tools</a></li>
                         
                         <li><a href="/categories/comparisons.html">Comparisons</a></li>
                         
+                        <li><a href="/categories/how-to-guides.html">How-to Guides</a></li>
+                        
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h4>Legal</h4>
                     <ul>
-                        <li><a href="/privacy.html">Privacy Policy</a></li>
-                        <li><a href="/terms.html">Terms of Service</a></li>
+                        <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+                        <li><a href="/terms-of-service.html">Terms of Service</a></li>
                         <li><a href="/affiliate-disclosure.html">Affiliate Disclosure</a></li>
+                        <li><a href="/datenschutz.html">Datenschutzerklärung</a></li>
+                        <li><a href="/impressum.html">Impressum</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy;  Operos. All rights reserved.</p>
+                <p>&copy; 2026 Operos. All rights reserved.</p>
             </div>
         </div>
     </footer>
     
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8252348486522857" crossorigin="anonymous"></script>
+    <script>
+        // Dark mode support for mobile Safari
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            document.documentElement.classList.toggle('dark', e.matches);
+        });
+    </script>
 </body>
 </html>

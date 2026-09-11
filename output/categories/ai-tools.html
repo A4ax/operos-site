@@ -24,10 +24,26 @@
     <main class="container main-content">
         <section class="category-header">
             <h1>AI Tools</h1>
-            <p>18 articles in this category</p>
+            <p>20 articles in this category</p>
         </section>
 
         <div class="category-articles">
+            
+            <article class="article-list-item">
+                <h3><a href="/posts/canva-vs-ai-coding-assistants-which-is-better.html">Canva vs AI Coding Assistants: Which Is Better?</a></h3>
+                <div class="list-meta">
+                    <span>2026-09-11</span>
+                    <span>8 min read</span>
+                </div>
+            </article>
+            
+            <article class="article-list-item">
+                <h3><a href="/posts/the-ultimate-guide-to-email-marketing-tools-for-freelancers.html">The Ultimate Guide to Email Marketing Tools for Freelancers</a></h3>
+                <div class="list-meta">
+                    <span>2026-09-11</span>
+                    <span>12 min read</span>
+                </div>
+            </article>
             
             <article class="article-list-item">
                 <h3><a href="/posts/notion-review-is-it-worth-it-in-2026.html">Notion Review: Is It Worth It in 2026?</a></h3>
@@ -198,13 +214,25 @@
                         <li><a href="/privacy-policy.html">Privacy Policy</a></li>
                         <li><a href="/terms-of-service.html">Terms of Service</a></li>
                         <li><a href="/affiliate-disclosure.html">Affiliate Disclosure</a></li>
+                        <li><a href="/datenschutz.html">Datenschutzerklärung</a></li>
+                        <li><a href="/impressum.html">Impressum</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy;  Operos. All rights reserved.</p>
+                <p>&copy; 2026 Operos. All rights reserved.</p>
             </div>
         </div>
     </footer>
+    <script>
+        // Dark mode support for mobile Safari
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            document.documentElement.classList.toggle('dark', e.matches);
+        });
+    </script>
 </body>
 </html>

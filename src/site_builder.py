@@ -123,7 +123,8 @@ class SiteBuilder:
             'site_description': self.site_config.get('description', ''),
             'article': article,
             'categories': categories,
-            'affiliate_disclosure': affiliate_disclosure
+            'affiliate_disclosure': affiliate_disclosure,
+            'current_year': datetime.now().year
         }
         
         return template.render(**context)
@@ -270,7 +271,8 @@ class SiteBuilder:
                 'articles': category_articles,
                 'site_name': self.site_config.get('name', 'Operos'),
                 'site_domain': self.site_config.get('domain', 'operos.de'),
-                'site_description': self.site_config.get('description', '')
+                'site_description': self.site_config.get('description', ''),
+                'current_year': datetime.now().year
             }
             
             output_path = os.path.join(self.output_dir, 'categories', f'{category.lower().replace(" ", "-")}.html')

@@ -613,6 +613,86 @@ body {
     line-height: 1.6;
 }
 
+/* Recommended Deals / Affiliate Box */
+.affiliate-box {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin: 40px 0;
+}
+
+.affiliate-box h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+.affiliate-box-note {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.affiliate-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.affiliate-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.affiliate-list li:last-child {
+    border-bottom: none;
+}
+
+.affiliate-list a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    flex: 1;
+    min-width: 200px;
+}
+
+.affiliate-list a:hover {
+    text-decoration: underline;
+}
+
+.affiliate-price {
+    background: var(--primary);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 16px;
+}
+
+.affiliate-asin {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+:root.dark .affiliate-box {
+    background: var(--bg-subtle);
+    border-color: var(--border);
+}
+
+@media (prefers-color-scheme: dark) {
+    .affiliate-box {
+        background: var(--bg-subtle);
+        border-color: var(--border);
+    }
+}
+
 .comparison-table {
     overflow-x: auto;
     margin: 32px 0;

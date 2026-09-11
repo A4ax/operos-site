@@ -24,6 +24,16 @@
     "articles_per_batch": 5,
     "batch_interval_hours": 6
   },
+  "amazon": {
+    "enabled": true,
+    "tracking_id": "operos-21",
+    "domain": "amazon.de",
+    "marketplace": "www.amazon.de",
+    "search_index": "Electronics",
+    "links_per_article": 2,
+    "paapi_access_key": "",
+    "paapi_secret_key": ""
+  },
   "affiliate": {
     "programs": {
       "notion": {
