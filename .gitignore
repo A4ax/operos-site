@@ -11,3 +11,6 @@ fix_generator.py
 SETUP.md
 AFFILIATE_APPS.md
 SETUP.md
+client_secret*.json
+token.json
+
