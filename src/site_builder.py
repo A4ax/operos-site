@@ -239,9 +239,10 @@ class SiteBuilder:
         categories = list(set(a.get('category', 'AI Tools') for a in articles))
         
         context = {
-            'title': f'{self.site_config.get("name", "Operos")} — Best AI Tools & Software Reviews',
+            'title': f'{self.site_config.get("name", "Operos")} - Best AI Tools & Software Reviews',
             'featured': featured,
             'recent': recent,
+            'all_articles': articles,
             'categories': categories,
             'total_articles': len(articles),
             'site_name': self.site_config.get('name', 'Operos'),
