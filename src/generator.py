@@ -690,6 +690,13 @@ Now that you've mastered the basics:
             import urllib.parse
             return f'https://amazon.de/s?k={urllib.parse.quote(term)}&tag={self.amazon.partner_tag}'
 
+        def resolved_link(term):
+            """Prefer a real /dp/<ASIN> product link; fall back to search link."""
+            products = self.amazon.search_products(term, max_items=1)
+            if products and products[0].get('asin'):
+                return products[0]['url'], products[0].get('title', term)
+            return amazon_link(term), term
+
         content = f"""# {title}
 
 Looking for the best {product}? We researched the most popular options on the market to help you choose the right one for your needs and budget in {year}.
@@ -711,13 +718,17 @@ We compared {len(brands)} popular {product} options across price, features, buil
 
 """
         for i, brand in enumerate(brands, 1):
+            if i <= 3:
+                link, link_title = resolved_link(f'{brand} {product}')
+            else:
+                link, link_title = amazon_link(f'{brand} {product}'), f'{brand} {product}'
             content += f"""## {i}. {brand} {product.title()} — Top Pick {i}
 
 **Price:** See the current price on Amazon.
 
 {random.choice(self.PRODUCT_BLURBS)} The {brand} {product} is one of the most popular options in {year}, with strong reviews and reliable performance.
 
-[Check the latest price on Amazon]({amazon_link(f'{brand} {product}')})
+[Check the latest price on Amazon]({link})
 
 """
         content += f"""
