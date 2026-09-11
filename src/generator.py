@@ -825,13 +825,15 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
     def _inject_inline_amazon_link(self, content: str, affiliate_links: List[Dict]) -> str:
         """Insert one contextual Amazon CTA line inside the article body so the
         affiliate link is visible while reading (not just in the end box)."""
+        if 'upgrade your setup' in content:
+            return content
         amazon_links = [l for l in affiliate_links if 'amazon' in str(l.get('source', '')).lower()]
         if not amazon_links:
             return content
         link = amazon_links[0]
         cta = (
-            f"\n\n> **Looking to upgrade your setup?** "
-            f"[Check the latest price on Amazon]({link['url']}) "
+            f"\n\n**Looking to upgrade your setup?** "
+            f"Check the [latest price on Amazon]({link['url']}) "
             f"— we may earn a small commission at no extra cost to you.\n\n"
         )
         marker = '\n---'
