@@ -12,7 +12,10 @@ from src.site_builder import SiteBuilder
 from src.deploy import DeployBot
 
 class ContentEngine:
-    def __init__(self, config_path: str = 'config/settings.json'):
+    def __init__(self, config_path: str = None):
+        if config_path is None:
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            config_path = os.path.join(project_root, 'config', 'settings.json')
         with open(config_path, 'r') as f:
             self.config = json.load(f)
         
