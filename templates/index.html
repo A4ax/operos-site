@@ -56,8 +56,8 @@
             <h1>{{ site_description }}</h1>
             <p class="hero-subtitle">Honest reviews, in-depth comparisons, and expert recommendations for the best AI tools and software.</p>
             <div class="search-box">
-                <input type="text" placeholder="Search for tools..." class="search-input">
-                <button class="search-btn">Search</button>
+                <input type="text" placeholder="Search for tools..." class="search-input" id="home-search-input">
+                <button class="search-btn" id="home-search-btn">Search</button>
             </div>
         </section>
         
@@ -152,6 +152,17 @@
             </div>
         </div>
     </footer>
+    <script>
+        // Homepage search → search page
+        const homeInput = document.getElementById('home-search-input');
+        const homeBtn = document.getElementById('home-search-btn');
+        function goSearch() {
+            const q = homeInput.value.trim();
+            if (q) { window.location.href = '/search.html?q=' + encodeURIComponent(q); }
+        }
+        homeBtn.addEventListener('click', goSearch);
+        homeInput.addEventListener('keydown', e => { if (e.key === 'Enter') goSearch(); });
+    </script>
     <script>
         // Dark mode support for mobile Safari
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;

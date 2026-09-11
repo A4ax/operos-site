@@ -70,8 +70,7 @@ def main():
         secret = json.load(f)['installed']
 
     server = HTTPServer(('localhost', PORT), Handler)
-    server_thread = threading.Thread(target=server.serve_forever, daemon=True)
-    server_thread.start()
+    threading.Thread(target=server.serve_forever, daemon=True).start()
 
     auth_url = build_auth_url(secret['client_id'])
     print('=' * 70)
@@ -86,16 +85,16 @@ def main():
     except Exception:
         pass
 
-    server.serve_forever(timeout=1)
     for _ in range(300):
         if captured_code:
             break
         if auth_error:
             print(f'Auth error: {auth_error}')
             sys.exit(1)
-        threading.Event().wait(1)
+        time.sleep(1)
 
     server.shutdown()
+    server.server_close()
 
     if not captured_code:
         print('Timed out waiting for authorization.')

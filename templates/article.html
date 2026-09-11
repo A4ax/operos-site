@@ -87,7 +87,7 @@
             {% if affiliate_links %}
             <div class="affiliate-box">
                 <h3>Recommended Deals</h3>
-                <p class="affiliate-box-note">Some links below are affiliate links — we may earn a commission at no extra cost to you.</p>
+                <p class="affiliate-box-note">As an Amazon Associate we earn from qualifying purchases.</p>
                 <ul class="affiliate-list">
                     {% for link in affiliate_links %}
                     <li>
@@ -105,6 +105,20 @@
             {% endif %}
             
             {{ affiliate_disclosure|safe }}
+            
+            {% if related %}
+            <div class="related-articles">
+                <h3>Related Articles</h3>
+                <div class="related-list">
+                    {% for rel in related %}
+                    <a href="/posts/{{ rel.slug }}.html" class="related-item">
+                        <span class="related-category">{{ rel.category }}</span>
+                        <span class="related-title">{{ rel.title }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             
             <div class="article-share">
                 <h3>Share this article:</h3>

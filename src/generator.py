@@ -225,7 +225,7 @@ Both are excellent tools, and you really can't go wrong with either. If you're s
 
 ---
 
-*Disclosure: We may earn a commission when you use our links to claim a discount or sign up for an account. This helps us keep our content free. Thank you for your support!*
+
 """
         return content
     
@@ -323,7 +323,7 @@ Most tools in this list offer a free tier, which is great for testing before com
 
 ---
 
-*Disclosure: We may earn a commission when you use our links to claim a discount or sign up for an account. This helps us keep our content free. Thank you for your support!*
+
 """
         return content
     
@@ -449,7 +449,7 @@ While it's not perfect — no software is — the pros significantly outweigh th
 
 ---
 
-*Disclosure: We may earn a commission when you use our links to claim a discount or sign up for an account. This helps us keep our content free. Thank you for your support!*
+
 """
         return content
     
@@ -617,7 +617,7 @@ Now that you've mastered the basics:
 
 ---
 
-*Disclosure: We may earn a commission when you use our links to claim a discount or sign up for an account. This helps us keep our content free. Thank you for your support!*
+
 """
         return content
     
@@ -697,7 +697,7 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
 
 ---
 
-*Disclosure: We may earn a commission when you use our links to claim a discount or sign up for an account. This helps us keep our content free. Thank you for your support!*
+
 """
         return content
     
@@ -833,14 +833,46 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         link = amazon_links[0]
         cta = (
             f"\n\n**Looking to upgrade your setup?** "
-            f"Check the [latest price on Amazon]({link['url']}) "
-            f"— we may earn a small commission at no extra cost to you.\n\n"
+            f"Check the [latest price on Amazon]({link['url']}).\n\n"
         )
         marker = '\n---'
         idx = content.rfind(marker)
         if idx != -1:
             return content[:idx] + cta + content[idx:]
         return content.rstrip() + cta
+
+    TOOL_URLS = {
+        'Notion': 'https://www.notion.so/product',
+        'ClickUp': 'https://clickup.com/pricing',
+        'Coda': 'https://coda.io/',
+        'Monday.com': 'https://monday.com/',
+        'Asana': 'https://asana.com/',
+        'Airtable': 'https://airtable.com/',
+        'Smartsheet': 'https://www.smartsheet.com/',
+        'Trello': 'https://trello.com/',
+        'Basecamp': 'https://basecamp.com/',
+        'Todoist': 'https://todoist.com/',
+        'Canva': 'https://www.canva.com/',
+        'Figma': 'https://www.figma.com/',
+        'Grammarly': 'https://www.grammarly.com/',
+        'Hemingway': 'https://hemingwayapp.com/',
+        'Jasper': 'https://www.jasper.ai/',
+        'Copy.ai': 'https://www.copy.ai/',
+        'Midjourney': 'https://www.midjourney.com/',
+        'DALL-E': 'https://openai.com/dall-e-3',
+        'Ahrefs': 'https://ahrefs.com/',
+        'SEMrush': 'https://www.semrush.com/',
+        'Hostinger': 'https://www.hostinger.com/',
+        'Bluehost': 'https://www.bluehost.com/',
+        'Descript': 'https://www.descript.com/',
+        'Adobe Premiere': 'https://www.adobe.com/products/premiere.html',
+        'Surfer SEO': 'https://surferseo.com/',
+        'Clearscope': 'https://www.clearscope.com/',
+        'ConvertKit': 'https://convertkit.com/',
+        'Mailchimp': 'https://mailchimp.com/',
+        'Obsidian': 'https://obsidian.md/',
+        'ClickUp': 'https://clickup.com/',
+    }
 
     def _amazon_keywords(self, title: str, content: str = '') -> List[str]:
         """Derive up to `links_per_article` Amazon search keywords per article,
@@ -888,19 +920,22 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         return result
     
     def _rewire_affiliate_anchors(self, content: str) -> str:
-        """Convert `[text](#affiliate-tool)` markdown anchors to real program
-        URLs where possible; otherwise strip the link and keep the text."""
-        programs = {p['name'].lower(): p['url'] for p in self.affiliate_config.get('programs', {}).values()}
+        """Convert `[text](#affiliate-tool)` markdown anchors to real URLs so
+        every in-article link works. Prefers configured affiliate program
+        URLs; otherwise falls back to the tool's official site."""
+        url_map = {}
+        for p in self.affiliate_config.get('programs', {}).values():
+            norm = re.sub(r'[^a-z0-9]', '', p['name'].lower())
+            url_map.setdefault(norm, p['url'])
+        for name, url in self.TOOL_URLS.items():
+            norm = re.sub(r'[^a-z0-9]', '', name.lower())
+            url_map.setdefault(norm, url)
 
         def replace_anchor(match):
             text, anchor = match.group(1), match.group(2)
-            tool = re.sub(r'^#affiliate-', '', anchor).lower()
-            tool = tool.replace('-', ' ')
-            if tool in programs:
-                return f'[{text}]({programs[tool]})'
-            for name, url in programs.items():
-                if name in tool:
-                    return f'[{text}]({url})'
+            norm = re.sub(r'[^a-z0-9]', '', anchor.replace('#affiliate-', '').lower())
+            if norm in url_map:
+                return f'[{text}]({url_map[norm]})'
             return text
 
         return re.sub(r'\[([^\]]+)\]\(#affiliate-([^)]+)\)', replace_anchor, content)

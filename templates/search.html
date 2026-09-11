@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search — {{ site_name }}</title>
+    <meta name="description" content="Search {{ site_name }} for reviews, comparisons and guides.">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="container nav-container">
+            <a href="/" class="logo">{{ site_name }}</a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+            </ul>
+            <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('active')">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+    </header>
+
+    <main class="container main-content">
+        <section class="search-hero">
+            <h1>Search {{ site_name }}</h1>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search for tools, reviews, comparisons..." class="search-input" autofocus>
+                <button class="search-btn" id="search-btn">Search</button>
+            </div>
+            <p class="search-stats" id="search-stats"></p>
+        </section>
+
+        <section class="search-results">
+            <div class="article-list" id="search-results"></div>
+            <p class="no-results" id="no-results" style="display:none;">No articles found. Try a different keyword.</p>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>{{ site_name }}</h4>
+                    <p>{{ site_description }}</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+                        <li><a href="/terms-of-service.html">Terms of Service</a></li>
+                        <li><a href="/affiliate-disclosure.html">Affiliate Disclosure</a></li>
+                        <li><a href="/datenschutz.html">Datenschutzerklärung</a></li>
+                        <li><a href="/impressum.html">Impressum</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; {{ current_year }} {{ site_name }}. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let searchIndex = [];
+        const input = document.getElementById('search-input');
+        const btn = document.getElementById('search-btn');
+        const resultsEl = document.getElementById('search-results');
+        const statsEl = document.getElementById('search-stats');
+        const noResultsEl = document.getElementById('no-results');
+
+        function getQuery() {
+            const params = new URLSearchParams(window.location.search);
+            return (params.get('q') || '').trim();
+        }
+
+        function render(results, query) {
+            resultsEl.innerHTML = '';
+            if (results.length === 0) {
+                noResultsEl.style.display = 'block';
+                statsEl.textContent = query ? `No results for "${query}"` : 'Type something to search.';
+                return;
+            }
+            noResultsEl.style.display = 'none';
+            statsEl.textContent = `${results.length} result${results.length === 1 ? '' : 's'} for "${query}"`;
+            results.forEach(a => {
+                const item = document.createElement('article');
+                item.className = 'article-list-item';
+                const inner = document.createElement('div');
+                inner.innerHTML = `
+                    <div class="list-category">${a.category}</div>
+                    <h3><a href="${a.url}">${a.title}</a></h3>
+                    <div class="list-meta"><span>${a.date}</span></div>`;
+                item.appendChild(inner);
+                resultsEl.appendChild(item);
+            });
+        }
+
+        function doSearch(query) {
+            if (!query) { render([], ''); return; }
+            const q = query.toLowerCase();
+            const matches = searchIndex.filter(a =>
+                a.title.toLowerCase().includes(q) ||
+                a.category.toLowerCase().includes(q) ||
+                (a.keywords && a.keywords.join(' ').toLowerCase().includes(q))
+            );
+            render(matches, query);
+        }
+
+        function runFromInput() {
+            const q = input.value.trim();
+            const url = new URL(window.location.href);
+            url.searchParams.set('q', q);
+            window.history.replaceState({}, '', url);
+            doSearch(q);
+        }
+
+        btn.addEventListener('click', runFromInput);
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') runFromInput(); });
+
+        fetch('/search.json')
+            .then(r => r.json())
+            .then(data => {
+                searchIndex = data;
+                const q = getQuery();
+                if (q) {
+                    input.value = q;
+                    doSearch(q);
+                } else {
+                    render([], '');
+                }
+            })
+            .catch(() => { statsEl.textContent = 'Search index unavailable.'; });
+    </script>
+    <script>
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) { document.documentElement.classList.add('dark'); }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => { document.documentElement.classList.toggle('dark', e.matches); });
+    </script>
+</body>
+</html>

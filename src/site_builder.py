@@ -74,7 +74,7 @@ class SiteBuilder:
         
         for article in all_articles:
             slug = article.get('slug', self._generate_slug(article['title']))
-            html_content = self._render_article_page(article, categories)
+            html_content = self._render_article_page(article, categories, all_articles)
             
             post_path = os.path.join(self.output_dir, 'posts', f"{slug}.html")
             with open(post_path, 'w', encoding='utf-8') as f:
@@ -87,6 +87,8 @@ class SiteBuilder:
         self._render_sitemap(all_articles)
         self._render_robots_txt()
         self._render_rss_feed(all_articles)
+        self._render_search_data(all_articles)
+        self._render_search_page()
         self._copy_static_files()
         self._render_static_pages()
         
@@ -96,14 +98,16 @@ class SiteBuilder:
         
         return f"Built {len(all_articles)} articles, {len(categories)} categories. Output: {self.output_dir}"
     
-    def _render_article_page(self, article: Dict, categories: List[str] = None) -> str:
+    def _render_article_page(self, article: Dict, categories: List[str] = None, all_articles: List[Dict] = None) -> str:
         template = self.env.get_template('article.html')
         
         if categories is None:
             categories = list(set(a.get('category', 'AI Tools') for a in [article]))
+
+        related = self._related_articles(article, all_articles or [])
         
         affiliate_disclosure = """<div class="affiliate-disclosure">
-    <p><strong>Disclosure:</strong> We may earn a commission when you use our links to claim a discount or sign up for an account. This helps us keep our content free. Thank you for your support!</p>
+    <p><strong>Disclosure:</strong> As an Amazon Associate we earn from qualifying purchases.</p>
 </div>"""
         
         context = {
@@ -124,7 +128,8 @@ class SiteBuilder:
             'article': article,
             'categories': categories,
             'affiliate_disclosure': affiliate_disclosure,
-            'current_year': datetime.now().year
+            'current_year': datetime.now().year,
+            'related': related
         }
         
         return template.render(**context)
@@ -372,6 +377,57 @@ Allow: /
                     with open(dst, 'wb') as f_dst:
                         f_dst.write(f_src.read())
     
+    def _render_search_data(self, articles: List[Dict]):
+        domain = self.site_config.get('domain', 'operos.de')
+        items = []
+        for article in articles:
+            slug = article.get('slug', self._generate_slug(article['title']))
+            items.append({
+                'title': article['title'],
+                'slug': slug,
+                'category': article.get('category', 'AI Tools'),
+                'date': article.get('published_at', '')[:10],
+                'url': f'/posts/{slug}.html',
+                'keywords': article.get('keywords', []),
+            })
+        with open(os.path.join(self.output_dir, 'search.json'), 'w', encoding='utf-8') as f:
+            json.dump(items, f, ensure_ascii=False)
+
+    def _render_search_page(self):
+        template = self.env.get_template('search.html')
+        html = template.render(
+            site_name=self.site_config.get('name', 'Operos'),
+            site_domain=self.site_config.get('domain', 'operos.de'),
+            site_description=self.site_config.get('description', ''),
+            current_year=datetime.now().year,
+        )
+        with open(os.path.join(self.output_dir, 'search.html'), 'w', encoding='utf-8') as f:
+            f.write(html)
+
+    def _related_articles(self, article: Dict, all_articles: List[Dict], limit: int = 3) -> List[Dict]:
+        current_slug = article.get('slug', self._generate_slug(article['title']))
+        category = article.get('category', 'AI Tools')
+        same_cat = [
+            a for a in all_articles
+            if a.get('slug', self._generate_slug(a['title'])) != current_slug
+            and a.get('category') == category
+        ]
+        if len(same_cat) < limit:
+            others = [
+                a for a in all_articles
+                if a.get('slug', self._generate_slug(a['title'])) != current_slug
+                and a.get('category') != category
+            ]
+            same_cat.extend(others)
+        seen = []
+        for a in same_cat:
+            slug = a.get('slug', self._generate_slug(a['title']))
+            if slug not in [x.get('slug') for x in seen]:
+                seen.append(a)
+            if len(seen) >= limit:
+                break
+        return seen
+
     def _render_static_pages(self):
         """Render static pages (legal, etc) using Jinja2 templates"""
         legal_pages = {
