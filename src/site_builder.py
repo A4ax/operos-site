@@ -88,6 +88,7 @@ class SiteBuilder:
         self._render_robots_txt()
         self._render_rss_feed(all_articles)
         self._copy_static_files()
+        self._render_static_pages()
         
         # Save all article metadata for next run
         with open(articles_json, 'w', encoding='utf-8') as f:
@@ -367,6 +368,56 @@ Allow: /
                 with open(src, 'rb') as f_src:
                     with open(dst, 'wb') as f_dst:
                         f_dst.write(f_src.read())
+    
+    def _render_static_pages(self):
+        """Render static pages (legal, etc) using Jinja2 templates"""
+        legal_pages = {
+            'privacy-policy.html': {
+                'template': 'privacy-policy.html',
+                'context': {
+                    'site_name': self.site_config.get('name', 'Operos'),
+                    'site_domain': self.site_config.get('domain', 'operos.de')
+                }
+            },
+            'terms-of-service.html': {
+                'template': 'terms-of-service.html',
+                'context': {
+                    'site_name': self.site_config.get('name', 'Operos'),
+                    'site_domain': self.site_config.get('domain', 'operos.de')
+                }
+            },
+            'affiliate-disclosure.html': {
+                'template': 'affiliate-disclosure.html',
+                'context': {
+                    'site_name': self.site_config.get('name', 'Operos'),
+                    'site_domain': self.site_config.get('domain', 'operos.de')
+                }
+            },
+            'datenschutz.html': {
+                'template': 'datenschutz.html',
+                'context': {
+                    'site_name': self.site_config.get('name', 'Operos'),
+                    'site_domain': self.site_config.get('domain', 'operos.de')
+                }
+            },
+            'impressum.html': {
+                'template': 'impressum.html',
+                'context': {
+                    'site_name': self.site_config.get('name', 'Operos'),
+                    'site_domain': self.site_config.get('domain', 'operos.de')
+                }
+            }
+        }
+        
+        for output_name, config in legal_pages.items():
+            try:
+                template = self.env.get_template(config['template'])
+                html_content = template.render(**config['context'])
+                output_path = os.path.join(self.output_dir, output_name)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(html_content)
+            except Exception as e:
+                print(f"Warning: Could not render {output_name}: {e}")
     
     def _generate_slug(self, title: str) -> str:
         slug = title.lower()
