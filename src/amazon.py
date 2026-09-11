@@ -193,10 +193,15 @@ class AmazonAssociates:
                 seen.add(asin)
                 h2 = div.select_one('h2') or div.select_one('h2 span')
                 title = h2.get_text(strip=True) if h2 else keyword
+                img = div.select_one('img')
+                image = ''
+                if img:
+                    image = img.get('src') or img.get('data-src') or ''
                 products.append({
                     'asin': asin,
                     'title': title,
                     'url': f'https://{self.domain}/dp/{asin}?tag={self.partner_tag}',
+                    'image': self.resize_image(image, 800),
                     'price': None,
                     'source': 'amazon-scrape',
                 })
@@ -272,6 +277,16 @@ class AmazonAssociates:
     # ------------------------------------------------------------------
     # Link text helpers
     # ------------------------------------------------------------------
+    def resize_image(self, url: str, size: int = 800) -> str:
+        """Rebuild an Amazon product image URL at a requested size."""
+        if not url:
+            return ''
+        m = re.search(r'/images/I/([A-Za-z0-9%._-]+?)\.', url)
+        if not m:
+            return url
+        image_id = m.group(1).split('.')[0]
+        return f'https://m.media-amazon.com/images/I/{image_id}._SL{size}_.jpg'
+
     def build_link_text(self, product: Dict) -> str:
         if product.get('price'):
             return f"Check price on Amazon — {product['price']}"

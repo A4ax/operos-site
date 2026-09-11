@@ -2,6 +2,7 @@ import json
 import random
 import re
 import os
+import requests
 from datetime import datetime
 from typing import List, Dict, Optional
 
@@ -46,6 +47,7 @@ class ContentGenerator:
         }
         
         article['word_count'] = len(article['content'].split())
+        article['image'] = self._resolve_article_image(title, category, article['affiliate_links'])
         
         return article
     
@@ -903,6 +905,7 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
                     'url': product['url'],
                     'asin': product.get('asin'),
                     'price': product.get('price'),
+                    'image': product.get('image', ''),
                     'tool': keyword,
                     'commission': 'Amazon Associates',
                     'source': product.get('source', 'amazon')
@@ -1136,6 +1139,16 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         )
         return content
     
+    def _resolve_article_image(self, title: str, category: str, affiliate_links: List[Dict]) -> str:
+        """Pick a product-relevant image: real Amazon product image first,
+        then a keyword-based stock image, then a generic fallback."""
+        for link in affiliate_links:
+            if link.get('image') and 'amazon' in str(link.get('source', '')).lower():
+                return link['image']
+        product = self._extract_product(title)
+        keyword = product or re.sub(r'\s+', '-', category.lower())
+        return f'https://loremflickr.com/800/450/{requests.utils.quote(keyword)}'
+
     def _extract_keywords(self, title: str) -> List[str]:
         words = re.findall(r'[a-zA-Z\u00C0-\u024F]+', title)
         stop_words = {'the', 'a', 'an', 'for', 'and', 'to', 'of', 'in', 'on', 'at', 'vs', 'vs', 'for', 'by', 'with', 'is', 'it', 'how', 'use', 'what', 'why', 'when', 'where', 'who', 'which', 'this', 'that', 'than'}
