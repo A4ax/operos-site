@@ -16,7 +16,7 @@ PORT = 8080
 REDIRECT_URI = f'http://localhost:{PORT}/'
 
 SCOPES = [
-    'https://www.googleapis.com/auth/webmasters.readonly',
+    'https://www.googleapis.com/auth/webmasters',
     'https://www.googleapis.com/auth/adsense.readonly',
 ]
 

@@ -26,7 +26,10 @@ def check_accounts():
         print(f"    pending tasks: {acc.get('pendingTasks')}")
         print(f"    time zone: {acc.get('timeZone')}")
         check_ad_clients(name)
-        check_earnings(name)
+        try:
+            check_earnings(name)
+        except Exception as e:
+            print(f'    (earnings report skipped: {e})')
 
 
 def check_ad_clients(account):
@@ -71,7 +74,8 @@ def check_earnings(account):
     params = {
         **d(True),
         'dimensions': 'DATE',
-        'metrics': 'ESTIMATED_EARNINGS,CLICKS',
+        'metrics': 'ESTIMATED_EARNINGS',
+        'dateRange': 'LAST_30_DAYS',
     }
     r = api_get(f'{BASE}/{account}/reports:generate', params=params)
     if r.status_code == 200:
