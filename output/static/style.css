@@ -829,3 +829,52 @@ body {
         background: var(--bg-subtle);
     }
 }
+
+/* Dark mode with JS support */
+:root.dark {
+    --text: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --bg: #0f172a;
+    --bg-subtle: #1e293b;
+    --bg-soft: #334155;
+    --border: #334155;
+    --border-light: #1e293b;
+}
+
+:root.dark body {
+    background: var(--bg);
+    color: var(--text);
+}
+
+:root.dark .site-header {
+    background: rgba(15, 23, 42, 0.95);
+}
+
+:root.dark .article-card {
+    background: var(--bg-subtle);
+    border-color: var(--border);
+}
+
+:root.dark .article-list-item {
+    background: var(--bg-subtle);
+    border-color: var(--border);
+}
+
+:root.dark .hero {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+:root.dark .search-input {
+    background: var(--bg-subtle);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+:root.dark .article-body p, :root.dark .article-body li {
+    color: var(--text-secondary);
+}
+
+:root.dark .site-footer {
+    background: var(--bg-subtle);
+}
