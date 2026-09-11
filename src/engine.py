@@ -79,10 +79,18 @@ class ContentEngine:
             
             if is_first_run:
                 max_articles = 50  # Generate 50 articles on first run
-            
+
+            # Bias toward Amazon product (buyers guide) articles: ~2/3 of each batch
+            product_topics = [t for t in topics if t.get('topic_type') == 'amazon_product']
+            saas_topics = [t for t in topics if t.get('topic_type') != 'amazon_product']
+            target_product = max(1, int(max_articles * 0.66))
+            selected = product_topics[:target_product] + saas_topics[:max_articles - target_product]
+            if not selected:
+                selected = topics[:max_articles]
+
             articles = []
             
-            for topic in topics[:max_articles]:
+            for topic in selected[:max_articles]:
                 try:
                     article = self.generator.generate_article(topic)
                     articles.append(article)
