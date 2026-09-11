@@ -65,9 +65,18 @@ class ContentEngine:
                 print("  No new topics found. Exiting cycle.")
                 return cycle_result
             
-            # Step 2: Generate content
+            # Step 2: Generate content - generate more on first run
             print("[2/4] Generating content...")
             max_articles = self.scheduler_config.get('max_articles_per_run', 5)
+            
+            # Check if this is first run (no articles.json yet)
+            data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+            articles_json = os.path.join(data_dir, 'articles.json')
+            is_first_run = not os.path.exists(articles_json)
+            
+            if is_first_run:
+                max_articles = 50  # Generate 50 articles on first run
+            
             articles = []
             
             for topic in topics[:max_articles]:
