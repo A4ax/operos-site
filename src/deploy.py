@@ -5,6 +5,8 @@ import sys
 from datetime import datetime
 from typing import List, Dict
 
+import requests
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -52,6 +54,9 @@ class DeployBot:
             result['success'] = True
             result['git_output'] = git_output
             result['vercel_output'] = vercel_output
+
+            indexnow_output = self._indexnow_submit()
+            result['indexnow_output'] = indexnow_output
 
         except Exception as e:
             result['error'] = str(e)
@@ -137,6 +142,44 @@ class DeployBot:
         except Exception as e:
             print(f"  Vercel deploy error: {e}")
             return ""
+
+    def _indexnow_submit(self) -> str:
+        """Submit newest article URLs to IndexNow (instant Bing/Yandex/Seznam
+        indexing)."""
+        try:
+            indexnow = self.config.get('indexnow', {})
+            if not indexnow.get('enabled'):
+                return "IndexNow disabled"
+            key = indexnow.get('key', '')
+            domain = self.site_config.get('domain', 'operos.de')
+            if not key:
+                return "IndexNow: no key configured"
+
+            data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+            articles_json = os.path.join(data_dir, 'articles.json')
+            with open(articles_json, 'r', encoding='utf-8') as f:
+                articles = json.load(f)
+            articles.sort(key=lambda a: a.get('published_at', ''), reverse=True)
+
+            urls = [f'https://{domain}/']
+            for a in articles[:50]:
+                slug = a.get('slug')
+                if slug:
+                    urls.append(f'https://{domain}/posts/{slug}.html')
+            urls.append(f'https://{domain}/sitemap.xml')
+
+            payload = {
+                'host': domain,
+                'key': key,
+                'keyLocation': f'https://{domain}/{key}.txt',
+                'urlList': urls,
+            }
+            r = requests.post('https://api.indexnow.org/indexnow', json=payload, timeout=30)
+            if r.status_code in (200, 202):
+                return f"IndexNow: submitted {len(urls)} URLs (HTTP {r.status_code})"
+            return f"IndexNow: HTTP {r.status_code} {r.text[:200]}"
+        except Exception as e:
+            return f"IndexNow: error {e}"
 
     def _log_deploy(self, result: Dict):
         log_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'deploy_history.json')

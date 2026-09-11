@@ -89,6 +89,7 @@ class SiteBuilder:
         self._render_rss_feed(all_articles)
         self._render_search_data(all_articles)
         self._render_search_page()
+        self._render_indexnow_key()
         self._copy_static_files()
         self._render_static_pages()
         
@@ -105,6 +106,9 @@ class SiteBuilder:
             categories = list(set(a.get('category', 'AI Tools') for a in [article]))
 
         related = self._related_articles(article, all_articles or [])
+
+        processed_content = self._process_content(article['content'])
+        processed_content = self._inject_in_content_ad(processed_content)
         
         affiliate_disclosure = """<div class="affiliate-disclosure">
     <p><strong>Disclosure:</strong> As an Amazon Associate we earn from qualifying purchases.</p>
@@ -114,7 +118,7 @@ class SiteBuilder:
             'title': article['title'],
             'slug': article['slug'],
             'category': article.get('category', 'AI Tools'),
-            'content': self._process_content(article['content']),
+            'content': processed_content,
             'meta_description': article.get('meta_description', ''),
             'keywords': article.get('keywords', []),
             'published_at': article.get('published_at', datetime.now().isoformat()),
@@ -406,6 +410,28 @@ Allow: /
         with open(os.path.join(self.output_dir, 'search.html'), 'w', encoding='utf-8') as f:
             f.write(html)
 
+    def _inject_in_content_ad(self, content: str) -> str:
+        """Insert an AdSense ad unit after the ~2nd paragraph of article body."""
+        ad_html = """<div class="in-article-ad">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8252348486522857" crossorigin="anonymous"></script>
+<!-- Operosads -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-8252348486522857"
+     data-ad-slot="5134304927"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</div>"""
+        parts = content.split('</p>')
+        if len(parts) > 2:
+            head = '</p>'.join(parts[:2]) + '</p>'
+            tail = '</p>'.join(parts[2:])
+            return head + '\n' + ad_html + '\n' + tail
+        return content
+
     def _related_articles(self, article: Dict, all_articles: List[Dict], limit: int = 3) -> List[Dict]:
         current_slug = article.get('slug', self._generate_slug(article['title']))
         category = article.get('category', 'AI Tools')
@@ -429,6 +455,13 @@ Allow: /
             if len(seen) >= limit:
                 break
         return seen
+
+    def _render_indexnow_key(self):
+        key = self.config.get('indexnow', {}).get('key', '')
+        if not key:
+            return
+        with open(os.path.join(self.output_dir, f'{key}.txt'), 'w') as f:
+            f.write(key)
 
     def _render_static_pages(self):
         """Render static pages (legal, etc) using Jinja2 templates"""
