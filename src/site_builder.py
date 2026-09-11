@@ -39,12 +39,40 @@ class SiteBuilder:
         if not articles:
             return "No articles to build"
         
+        # Load all existing article JSON files from output folder
+        all_articles = list(articles)  # Start with new articles
+        posts_dir = os.path.join(self.output_dir, 'posts')
+        
+        for filename in os.listdir(posts_dir):
+            if filename.endswith('.json'):
+                filepath = os.path.join(posts_dir, filename)
+                try:
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        existing = json.load(f)
+                        if existing['slug'] not in [a['slug'] for a in all_articles]:
+                            all_articles.append(existing)
+                except:
+                    pass
+        
+        # Also load from any existing JSON metadata files
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+        articles_json = os.path.join(data_dir, 'articles.json')
+        if os.path.exists(articles_json):
+            with open(articles_json, 'r', encoding='utf-8') as f:
+                existing_articles = json.load(f)
+                for ea in existing_articles:
+                    if ea['slug'] not in [a['slug'] for a in all_articles]:
+                        all_articles.append(ea)
+        
+        # Sort by published date (newest first)
+        all_articles.sort(key=lambda x: x.get('published_at', ''), reverse=True)
+        
         if categories is None:
-            categories = list(set(a.get('category', 'AI Tools') for a in articles))
+            categories = list(set(a.get('category', 'AI Tools') for a in all_articles))
         
         article_slugs = []
         
-        for article in articles:
+        for article in all_articles:
             slug = article.get('slug', self._generate_slug(article['title']))
             html_content = self._render_article_page(article, categories)
             
@@ -54,14 +82,18 @@ class SiteBuilder:
             
             article_slugs.append(slug)
         
-        self._render_home_page(articles, categories)
-        self._render_category_pages(articles, categories)
-        self._render_sitemap(articles)
+        self._render_home_page(all_articles, categories)
+        self._render_category_pages(all_articles, categories)
+        self._render_sitemap(all_articles)
         self._render_robots_txt()
-        self._render_rss_feed(articles)
+        self._render_rss_feed(all_articles)
         self._copy_static_files()
         
-        return f"Built {len(articles)} articles, {len(categories)} categories. Output: {self.output_dir}"
+        # Save all article metadata for next run
+        with open(articles_json, 'w', encoding='utf-8') as f:
+            json.dump(all_articles, f)
+        
+        return f"Built {len(all_articles)} articles, {len(categories)} categories. Output: {self.output_dir}"
     
     def _render_article_page(self, article: Dict, categories: List[str] = None) -> str:
         template = self.env.get_template('article.html')
