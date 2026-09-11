@@ -281,10 +281,10 @@ class AmazonAssociates:
         """Rebuild an Amazon product image URL at a requested size."""
         if not url:
             return ''
-        m = re.search(r'/images/I/([A-Za-z0-9%._-]+?)\.', url)
+        m = re.search(r'/images/I/(.+?)\._', url)
         if not m:
             return url
-        image_id = m.group(1).split('.')[0]
+        image_id = m.group(1)
         return f'https://m.media-amazon.com/images/I/{image_id}._SL{size}_.jpg'
 
     def build_link_text(self, product: Dict) -> str:
