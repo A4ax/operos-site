@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <meta name="description" content="{{ site_description }}">
-    <link rel="canonical" href="https://{{ site_domain }}/categories/{{ category|lower|replace(' ', '-') }}.html">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -14,16 +13,20 @@
             <a href="/" class="logo">{{ site_name }}</a>
             <ul class="nav-links">
                 <li><a href="/">Home</a></li>
+                <li><a href="/categories/ai-tools.html">AI Tools</a></li>
+                <li><a href="/categories/software-reviews.html">Software Reviews</a></li>
+                <li><a href="/categories/comparisons.html">Comparisons</a></li>
+                <li><a href="/categories/how-to-guides.html">How-to Guides</a></li>
             </ul>
         </nav>
     </header>
-    
+
     <main class="container main-content">
         <section class="category-header">
             <h1>{{ category }}</h1>
             <p>{{ articles|length }} articles in this category</p>
         </section>
-        
+
         <div class="category-articles">
             {% for article in articles %}
             <article class="article-list-item">
@@ -36,10 +39,35 @@
             {% endfor %}
         </div>
     </main>
-    
+
     <footer class="site-footer">
         <div class="container">
-            <p>&copy; {{ current_year }} {{ site_name }}. All rights reserved.</p>
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>{{ site_name }}</h4>
+                    <p>{{ site_description }}</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Categories</h4>
+                    <ul>
+                        <li><a href="/categories/ai-tools.html">AI Tools</a></li>
+                        <li><a href="/categories/software-reviews.html">Software Reviews</a></li>
+                        <li><a href="/categories/comparisons.html">Comparisons</a></li>
+                        <li><a href="/categories/how-to-guides.html">How-to Guides</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+                        <li><a href="/terms-of-service.html">Terms of Service</a></li>
+                        <li><a href="/affiliate-disclosure.html">Affiliate Disclosure</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; {{ current_year }} {{ site_name }}. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 </body>
