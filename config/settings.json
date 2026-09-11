@@ -34,6 +34,13 @@
     "paapi_access_key": "",
     "paapi_secret_key": ""
   },
+  "awin": {
+    "enabled": true,
+    "publisher_id": "3087883",
+    "api_key": "",
+    "cache_file": "data/awin_programmes.json",
+    "tech_retail_keywords": ["notebooksbilliger", "MediaMarkt", "Alternate", "Computeruniverse", "Laptops Direct"]
+  },
   "affiliate": {
     "programs": {
       "notion": {

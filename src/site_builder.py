@@ -254,7 +254,8 @@ class SiteBuilder:
             'site_name': self.site_config.get('name', 'Operos'),
             'site_domain': self.site_config.get('domain', 'operos.de'),
             'site_description': self.site_config.get('description', ''),
-            'current_year': datetime.now().year
+            'current_year': datetime.now().year,
+            'amazon_tag': self.config.get('amazon', {}).get('tracking_id', 'operos-21')
         }
         
         output_path = os.path.join(self.output_dir, 'index.html')

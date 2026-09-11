@@ -51,6 +51,28 @@
         }
     }
     </script>
+    {% set amazon_link = affiliate_links|selectattr('source', 'equalto', 'amazon-paapi')|list|first if affiliate_links else None %}
+    {% if amazon_link and amazon_link.asin %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": "{{ amazon_link.text }}",
+        "image": "",
+        "description": "{{ title }}",
+        "sku": "{{ amazon_link.asin }}",
+        "offers": {
+            "@type": "Offer",
+            "url": "{{ amazon_link.url }}",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+            {% if amazon_link.price %}
+            ,"price": "{{ amazon_link.price|replace('EUR', '')|replace('€', '')|replace(',', '.')|trim }}"
+            {% endif %}
+        }
+    }
+    </script>
+    {% endif %}
 </head>
 <body>
     <header class="site-header">

@@ -104,6 +104,29 @@
                 {% endfor %}
             </div>
         </section>
+
+        <section class="deals-section">
+            <h2>Today's Deals on Amazon</h2>
+            <p class="deals-note">Save on tech we review. As an Amazon Associate we earn from qualifying purchases.</p>
+            <div class="deals-grid">
+                <a href="https://amazon.de/gp/goldbox?tag={{ amazon_tag }}" target="_blank" rel="nofollow sponsored" class="deal-card">
+                    <h4>Today's Deals</h4>
+                    <span>Limited-time offers</span>
+                </a>
+                <a href="https://amazon.de/gp/bestsellers?tag={{ amazon_tag }}" target="_blank" rel="nofollow sponsored" class="deal-card">
+                    <h4>Best Sellers</h4>
+                    <span>What everyone's buying</span>
+                </a>
+                <a href="https://amazon.de/-/de/electronics?tag={{ amazon_tag }}" target="_blank" rel="nofollow sponsored" class="deal-card">
+                    <h4>Electronics</h4>
+                    <span>Tech at great prices</span>
+                </a>
+                <a href="https://amazon.de/s?k=best+seller+headphones&tag={{ amazon_tag }}" target="_blank" rel="nofollow sponsored" class="deal-card">
+                    <h4>Top Headphones</h4>
+                    <span>Browse top-rated picks</span>
+                </a>
+            </div>
+        </section>
         
         <section class="ad-section">
             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8252348486522857" crossorigin="anonymous"></script>
@@ -152,6 +175,40 @@
             </div>
         </div>
     </footer>
+    <div class="newsletter-bar">
+        <div class="container newsletter-inner">
+            <p class="newsletter-text"><strong>Get the best deals &amp; tool roundups</strong> in your inbox every week.</p>
+            <form id="newsletter-form" class="newsletter-form">
+                <input type="email" name="email" id="newsletter-email" placeholder="Your email address" required>
+                <button type="submit" class="search-btn">Subscribe</button>
+            </form>
+            <p class="newsletter-msg" id="newsletter-msg"></p>
+        </div>
+    </div>
+    <script>
+        // Newsletter signup (FormSubmit → info@operos.de, activate once via email)
+        const nForm = document.getElementById('newsletter-form');
+        if (nForm) {
+            nForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('newsletter-email').value.trim();
+                const msg = document.getElementById('newsletter-msg');
+                if (!email) return;
+                msg.textContent = 'Subscribing...';
+                try {
+                    await fetch('https://formsubmit.co/ajax/info@operos.de', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ email: email, _subject: 'Operos newsletter signup' })
+                    });
+                    msg.textContent = 'Subscribed! Check your inbox to confirm.';
+                    nForm.reset();
+                } catch (err) {
+                    msg.textContent = 'Something went wrong — try again.';
+                }
+            });
+        }
+    </script>
     <script>
         // Homepage search → search page
         const homeInput = document.getElementById('home-search-input');

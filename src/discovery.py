@@ -189,6 +189,7 @@ class TopicDiscovery:
             'Student', 'Entrepreneur', 'Product Manager'
         ]
         
+        # --- Main SEO / SaaS tool topics ---
         for _ in range(100):
             template = random.choice(templates)
             if '{tool_category}' in template:
@@ -204,9 +205,10 @@ class TopicDiscovery:
             if '{tool}' in template:
                 template = template.replace('{tool}', random.choice([t[0] for t in tools]))
             
-            topic = {
+            topics.append({
                 'title': template,
                 'source': 'seo_template',
+                'topic_type': 'saas_tool',
                 'score': random.randint(10, 100),
                 'category': self._categorize_topic(template),
                 'affiliation_potential': random.uniform(0.3, 1.0),
@@ -214,8 +216,45 @@ class TopicDiscovery:
                 'difficulty': random.choice(['low', 'medium']),
                 'target_keywords': self._extract_keywords(template),
                 'estimated_traffic': random.randint(100, 10000)
-            }
-            topics.append(topic)
+            })
+        
+        # --- Amazon product (buyers guide) topics ---
+        products = [
+            'noise cancelling headphones', 'mechanical keyboards', '4k monitors',
+            'webcams', 'external ssds', 'wireless mice', 'laptop stands',
+            'standing desks', 'gaming headsets', 'usb-c hubs', 'graphics tablets',
+            'microphones', 'ring lights', 'blue light glasses', 'laptop backpacks',
+            'office chairs', 'laptops'
+        ]
+        prices = [50, 100, 150, 200, 300, 500]
+        product_templates = [
+            'Best {product} under EUR{price} in {year}',
+            'Top 10 {product} for {audience} in {year}',
+            '{product} Buying Guide: What to Look For in {year}',
+            'Best {product} in {year}: Tested & Ranked',
+            'The {product} for Every Budget in {year}',
+        ]
+        
+        for _ in range(60):
+            template = random.choice(product_templates)
+            product = random.choice(products)
+            template = template.replace('{product}', product)
+            template = template.replace('{price}', str(random.choice(prices)))
+            template = template.replace('{audience}', random.choice(audiences))
+            template = template.replace('{year}', str(datetime.now().year))
+            
+            topics.append({
+                'title': template,
+                'source': 'amazon_product',
+                'topic_type': 'amazon_product',
+                'score': random.randint(40, 100),
+                'category': 'Buyers Guides',
+                'affiliation_potential': random.uniform(0.7, 1.0),
+                'search_intent': 'commercial',
+                'difficulty': random.choice(['low', 'medium']),
+                'target_keywords': self._extract_keywords(template),
+                'estimated_traffic': random.randint(200, 8000)
+            })
         
         return topics
     

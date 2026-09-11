@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Dict, Optional
 
 from src.amazon import AmazonAssociates
+from src.awin import Awin
 
 class ContentGenerator:
     def __init__(self, config: dict):
@@ -14,13 +15,17 @@ class ContentGenerator:
         self.content_config = config.get('content', {})
         self.seo_config = config.get('seo', {})
         self.amazon = AmazonAssociates(config)
+        self.awin = Awin(config)
         
     def generate_article(self, topic: Dict) -> Dict:
         title = topic['title']
         category = topic.get('category', 'AI Tools')
         search_intent = topic.get('search_intent', 'commercial')
         
-        content = self._generate_article_content(title, category, search_intent)
+        if topic.get('topic_type') == 'amazon_product':
+            content = self._generate_product_roundup(title)
+        else:
+            content = self._generate_article_content(title, category, search_intent)
         content = self._clean_placeholders(content)
         content = self._rewire_affiliate_anchors(content)
         affiliate_links = self._insert_affiliate_links(title, content)
@@ -621,6 +626,121 @@ Now that you've mastered the basics:
 """
         return content
     
+    PRODUCT_CATALOG = {
+        'noise cancelling headphones': ['Sony', 'Bose', 'Sennheiser', 'Apple', 'JBL', 'Anker', 'Samsung', 'Audio-Technica'],
+        'mechanical keyboards': ['Keychron', 'Logitech', 'Corsair', 'Razer', 'Ducky', 'Epomaker', 'SteelSeries', 'Varmilo'],
+        'mechanical keyboard': ['Keychron', 'Logitech', 'Corsair', 'Razer', 'Ducky', 'Epomaker', 'SteelSeries', 'Varmilo'],
+        '4k monitors': ['LG', 'Samsung', 'Dell', 'BenQ', 'ASUS', 'Acer', 'Gigabyte', 'Philips'],
+        '4k monitor': ['LG', 'Samsung', 'Dell', 'BenQ', 'ASUS', 'Acer', 'Gigabyte', 'Philips'],
+        'webcams': ['Logitech', 'Razer', 'Anker', 'Elgato', 'AverMedia', 'Microsoft', 'Nexigo', 'Insta360'],
+        'webcam': ['Logitech', 'Razer', 'Anker', 'Elgato', 'AverMedia', 'Microsoft', 'Nexigo', 'Insta360'],
+        'external ssds': ['Samsung', 'SanDisk', 'Crucial', 'Western Digital', 'Seagate', 'Kingston', 'Sabrent', 'Lexar'],
+        'external ssd': ['Samsung', 'SanDisk', 'Crucial', 'Western Digital', 'Seagate', 'Kingston', 'Sabrent', 'Lexar'],
+        'wireless mice': ['Logitech', 'Razer', 'Anker', 'Microsoft', 'Corsair', 'SteelSeries', 'HP', 'Mx Master'],
+        'wireless mouse': ['Logitech', 'Razer', 'Anker', 'Microsoft', 'Corsair', 'SteelSeries', 'HP', 'Mx Master'],
+        'gaming headsets': ['SteelSeries', 'HyperX', 'Razer', 'Logitech', 'Corsair', 'Sony', 'JBL', 'EPOS'],
+        'gaming headset': ['SteelSeries', 'HyperX', 'Razer', 'Logitech', 'Corsair', 'Sony', 'JBL', 'EPOS'],
+        'standing desks': ['Flexispot', 'IKEA', 'Fully', 'Desk Haus', 'Mount-It', 'Eureka', 'Ergotron', 'Vari'],
+        'standing desk': ['Flexispot', 'IKEA', 'Fully', 'Desk Haus', 'Mount-It', 'Eureka', 'Ergotron', 'Vari'],
+        'laptop stands': ['Nulaxy', 'BONTEC', 'Rain Design', 'Soundance', 'Urmust', 'Groovemade', 'Humanscale', 'MOFT'],
+        'laptop stand': ['Nulaxy', 'BONTEC', 'Rain Design', 'Soundance', 'Urmust', 'Groovemade', 'Humanscale', 'MOFT'],
+        'usb-c hubs': ['Anker', 'Cable Matters', 'UGREEN', 'Belkin', 'HyperDrive', 'Satechi', 'CalDigit', 'Twelve South'],
+        'usb-c hub': ['Anker', 'Cable Matters', 'UGREEN', 'Belkin', 'HyperDrive', 'Satechi', 'CalDigit', 'Twelve South'],
+        'graphics tablets': ['Wacom', 'Huion', 'XP-Pen', 'Apple', 'Samsung', 'GAOMON', 'VEIKK', 'Parblo'],
+        'graphics tablet': ['Wacom', 'Huion', 'XP-Pen', 'Apple', 'Samsung', 'GAOMON', 'VEIKK', 'Parblo'],
+        'microphones': ['Blue Yeti', 'Rode', 'Shure', 'HyperX', 'Elgato', 'Samson', 'Audio-Technica', 'AKG'],
+        'microphone': ['Blue Yeti', 'Rode', 'Shure', 'HyperX', 'Elgato', 'Samson', 'Audio-Technica', 'AKG'],
+        'ring lights': ['Neewer', 'Lume Cube', 'Aputure', 'Godox', 'GVM', 'Elgato', 'Pyle', 'Ulanzi'],
+        'ring light': ['Neewer', 'Lume Cube', 'Aputure', 'Godox', 'GVM', 'Elgato', 'Pyle', 'Ulanzi'],
+        'laptops': ['Apple', 'Dell', 'Lenovo', 'HP', 'ASUS', 'Acer', 'MSI', 'Samsung'],
+        'laptop': ['Apple', 'Dell', 'Lenovo', 'HP', 'ASUS', 'Acer', 'MSI', 'Samsung'],
+        'office chairs': ['Herman Miller', 'Steelcase', 'Secretlab', 'IKEA', 'Sihoo', 'Hbada', 'Nouhaus', 'Ergotron'],
+        'office chair': ['Herman Miller', 'Steelcase', 'Secretlab', 'IKEA', 'Sihoo', 'Hbada', 'Nouhaus', 'Ergotron'],
+        'blue light glasses': ['Gunnar', 'J+S Vision', 'Felix Gray', 'Warby Parker', 'Pixel', 'EyeBuyDirect', 'Live Eyewear', 'Peepers'],
+        'laptop backpacks': ['Osprey', 'Samsonite', 'Thule', 'Nomatic', 'Timbuk2', 'Herschel', 'Bellroy', 'SwissGear'],
+        'laptop backpack': ['Osprey', 'Samsonite', 'Thule', 'Nomatic', 'Timbuk2', 'Herschel', 'Bellroy', 'SwissGear'],
+    }
+
+    PRODUCT_BLURBS = [
+        'A reliable and popular choice with consistently strong reviews.',
+        'Great value for the price with solid performance.',
+        'Premium build quality that stands out from the competition.',
+        'A crowd favorite that keeps getting recommended by buyers.',
+        'Excellent feature set for the price point.',
+        'Well-reviewed and dependable for everyday use.',
+        'A top performer in its class with excellent specs.',
+    ]
+
+    def _extract_product(self, title: str) -> str:
+        """Return the Amazon product keyword from a buyers-guide title, or ''."""
+        t = title.lower()
+        for product in sorted(self.PRODUCT_CATALOG, key=len, reverse=True):
+            if product in t:
+                return product
+        return ''
+
+    def _generate_product_roundup(self, title: str) -> str:
+        product = self._extract_product(title)
+        if not product:
+            product = 'noise cancelling headphones'
+        year = datetime.now().year
+        brands = self.PRODUCT_CATALOG.get(product, self.PRODUCT_CATALOG['noise cancelling headphones'])[:8]
+
+        def amazon_link(term):
+            import urllib.parse
+            return f'https://amazon.de/s?k={urllib.parse.quote(term)}&tag={self.amazon.partner_tag}'
+
+        content = f"""# {title}
+
+Looking for the best {product}? We researched the most popular options on the market to help you choose the right one for your needs and budget in {year}.
+
+## Quick Summary
+
+| Rank | Option | Why It Stands Out |
+|------|--------|-------------------|
+"""
+        for i, brand in enumerate(brands, 1):
+            content += f"| {i} | {brand} {product} | {random.choice(self.PRODUCT_BLURBS)} |\n"
+
+        content += f"""
+## How We Chose
+
+We compared {len(brands)} popular {product} options across price, features, build quality, and real-world buyer reviews. Our picks balance value and performance for most buyers.
+
+## Our Top Picks
+
+"""
+        for i, brand in enumerate(brands, 1):
+            content += f"""## {i}. {brand} {product.title()} — Top Pick {i}
+
+**Price:** See the current price on Amazon.
+
+{random.choice(self.PRODUCT_BLURBS)} The {brand} {product} is one of the most popular options in {year}, with strong reviews and reliable performance.
+
+[Check the latest price on Amazon]({amazon_link(f'{brand} {product}')})
+
+"""
+        content += f"""
+## Buying Guide: What to Look For in {product}
+
+### 1. Set Your Budget
+Decide on a realistic budget first. The best value isn't always the cheapest or the most expensive option.
+
+### 2. Compare Key Features
+- **Performance:** Look for the specifications that matter most for how you'll use it.
+- **Build quality:** A well-built option lasts longer and performs better.
+- **Compatibility:** Make sure it works with your devices and setup.
+- **Warranty & support:** A good warranty protects your purchase.
+
+### 3. Where to Buy
+We recommend buying from Amazon for reliable delivery, easy returns, and good customer service. [Browse the full range of {product}]({amazon_link(product)}).
+
+## Final Verdict
+
+The best {product} for you depends on your budget and needs. Every option on our list is a solid choice — start with the one that fits your budget, read the reviews, and buy with confidence.
+"""
+        return content
+
     def _generate_general_article(self, title: str, category: str) -> str:
         year = datetime.now().year
         
@@ -739,6 +859,12 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         if self.amazon.enabled:
             amazon_links = self._build_amazon_links(title, content)
             links.extend(amazon_links)
+
+        # Add Awin retail links for product buyers guides (German electronics stores)
+        product = self._extract_product(title)
+        if product and self.awin.enabled:
+            awin_links = self._build_awin_links(product)
+            links.extend(awin_links)
         
         if not links:
             random_program = random.choice(programs[:4])
@@ -822,6 +948,23 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         'graphics tablet', 'microphone', 'ring light', 'dual monitor'
     ]
 
+    def _build_awin_links(self, product: str) -> List[Dict]:
+        """Resolve Awin German electronics retailer links for a product."""
+        links = []
+        try:
+            tech = self.awin.tech_retail_links()
+            for name, url in list(tech.items())[:2]:
+                links.append({
+                    'text': f'Compare prices at {name}',
+                    'url': url,
+                    'tool': name,
+                    'commission': 'Awin',
+                    'source': 'awin',
+                })
+        except Exception as e:
+            print(f"  [awin] error: {e}")
+        return links
+
     def _inject_inline_amazon_link(self, content: str, affiliate_links: List[Dict]) -> str:
         """Insert one contextual Amazon CTA line inside the article body so the
         affiliate link is visible while reading (not just in the end box)."""
@@ -879,6 +1022,16 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         biased toward physical tech products a real buyer in that niche buys."""
         max_links = max(1, getattr(self.amazon, 'max_links', 2))
         text = f"{title} {content}".lower()
+
+        # 0) Buyers-guide / product article → the product itself is the keyword
+        product = self._extract_product(title)
+        if product:
+            brands = self.PRODUCT_CATALOG.get(product, [])
+            result = [product]
+            if brands:
+                result.append(f'{brands[0]} {product}')
+            return result[:max_links]
+
         candidates = []
 
         # 1) Audience / use-case match (highest conversion intent)

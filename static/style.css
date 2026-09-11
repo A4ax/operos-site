@@ -394,6 +394,78 @@ body {
     color: var(--text-muted);
 }
 
+/* Amazon Deals section */
+.deals-section {
+    margin-bottom: 64px;
+}
+
+.deals-section h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid var(--border-light);
+    color: var(--text);
+    letter-spacing: -0.5px;
+}
+
+.deals-note {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+.deals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.deal-card {
+    display: block;
+    padding: 24px;
+    background: linear-gradient(135deg, #fff7e6, #ffe9c2);
+    border: 1px solid #f5c97b;
+    border-radius: var(--radius);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.deal-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: #e8a33d;
+}
+
+.deal-card h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #7c4a03;
+    margin-bottom: 6px;
+}
+
+.deal-card span {
+    font-size: 0.85rem;
+    color: #a0650f;
+}
+
+:root.dark .deal-card {
+    background: linear-gradient(135deg, #2a2417, #33291a);
+    border-color: #5c4a24;
+}
+
+:root.dark .deal-card h4 { color: #ffd98a; }
+:root.dark .deal-card span { color: #d8b26a; }
+
+@media (prefers-color-scheme: dark) {
+    .deal-card {
+        background: linear-gradient(135deg, #2a2417, #33291a);
+        border-color: #5c4a24;
+    }
+    .deal-card h4 { color: #ffd98a; }
+    .deal-card span { color: #d8b26a; }
+}
+
 /* Article Page */
 .article-page {
     max-width: 740px;
@@ -876,6 +948,66 @@ body {
     margin: 0 auto;
     padding-left: 24px;
     padding-right: 24px;
+}
+
+/* Newsletter bar */
+.newsletter-bar {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    padding: 40px 24px;
+}
+
+.newsletter-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    max-width: 760px;
+}
+
+.newsletter-text {
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+.newsletter-text strong {
+    color: #fff;
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    min-width: 260px;
+}
+
+.newsletter-form input {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid #334155;
+    background: #0b1220;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.newsletter-form .search-btn {
+    padding: 12px 22px;
+    white-space: nowrap;
+}
+
+.newsletter-msg {
+    width: 100%;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .newsletter-form { flex-direction: column; }
 }
 
 /* Responsive */
