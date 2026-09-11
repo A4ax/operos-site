@@ -91,7 +91,11 @@
                 <ul class="affiliate-list">
                     {% for link in affiliate_links %}
                     <li>
+                        {% if link.source and 'amazon' in link.source|lower %}
+                        <a href="{{ link.url }}" target="_blank" rel="nofollow sponsored" class="buy-on-amazon">{{ link.text }}</a>
+                        {% else %}
                         <a href="{{ link.url }}" target="_blank" rel="nofollow sponsored">{{ link.text }}</a>
+                        {% endif %}
                         {% if link.price %}<span class="affiliate-price">{{ link.price }}</span>{% endif %}
                         {% if link.asin %}<span class="affiliate-asin">ASIN: {{ link.asin }}</span>{% endif %}
                     </li>

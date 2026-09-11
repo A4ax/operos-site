@@ -666,6 +666,24 @@ body {
     text-decoration: underline;
 }
 
+.affiliate-list a.buy-on-amazon {
+    display: inline-block;
+    background: #ff9900;
+    color: #fff;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    flex: 0 0 auto;
+    min-width: 0;
+    transition: background 0.2s ease;
+}
+
+.affiliate-list a.buy-on-amazon:hover {
+    background: #e68a00;
+    text-decoration: none;
+}
+
 .affiliate-price {
     background: var(--primary);
     color: white;
@@ -798,7 +816,11 @@ body {
         box-shadow: var(--shadow-md);
     }
     
-    .mobile-menu-btn {
+.mobile-menu-btn {
+        display: flex;
+    }
+
+    .nav-links.active {
         display: flex;
     }
     

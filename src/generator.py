@@ -23,7 +23,9 @@ class ContentGenerator:
         content = self._generate_article_content(title, category, search_intent)
         content = self._clean_placeholders(content)
         content = self._rewire_affiliate_anchors(content)
-        
+        affiliate_links = self._insert_affiliate_links(title, content)
+        content = self._inject_inline_amazon_link(content, affiliate_links)
+
         article = {
             'title': title,
             'slug': self._generate_slug(title),
@@ -33,7 +35,7 @@ class ContentGenerator:
             'keywords': topic.get('target_keywords', self._extract_keywords(title)),
             'published_at': datetime.now().isoformat(),
             'author': 'Operos Editorial Team',
-            'affiliate_links': self._insert_affiliate_links(title, content),
+            'affiliate_links': affiliate_links,
             'estimated_read_time': self._estimate_read_time(title),
             'word_count': 0
         }
@@ -770,40 +772,118 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
                 })
         return links
     
+    AUDIENCE_PRODUCTS = {
+        'developers': ['mechanical keyboard', 'ultrawide monitor', 'USB-C hub'],
+        'programmer': ['mechanical keyboard', 'ultrawide monitor', 'USB-C hub'],
+        'coding': ['mechanical keyboard', 'ultrawide monitor', 'USB-C hub'],
+        'designer': ['graphics tablet', '4k monitor', 'drawing tablet'],
+        'design': ['graphics tablet', '4k monitor', 'drawing tablet'],
+        'marketer': ['dual monitor', 'standing desk', 'ergonomic office chair'],
+        'marketing': ['dual monitor', 'standing desk', 'ergonomic office chair'],
+        'seo': ['dual monitor', 'standing desk'],
+        'student': ['noise cancelling headphones', 'laptop backpack', 'blue light glasses'],
+        'writer': ['mechanical keyboard', 'blue light glasses', 'monitor stand'],
+        'writing': ['mechanical keyboard', 'blue light glasses'],
+        'content creator': ['microphone', 'ring light', '4k webcam'],
+        'creators': ['microphone', 'ring light', '4k webcam'],
+        'creative': ['graphics tablet', '4k monitor'],
+        'youtuber': ['microphone', 'ring light', '4k webcam'],
+        'video': ['microphone', 'ring light', '4k webcam'],
+        'audio': ['microphone', 'headphones', 'studio headphones'],
+        'freelancer': ['laptop stand', 'external SSD', 'USB-C hub'],
+        'small business': ['label printer', 'external SSD', 'office chair'],
+        'business': ['label printer', 'external SSD', 'office chair'],
+        'entrepreneur': ['laptop stand', 'external SSD', 'standing desk'],
+        'remote': ['4k webcam', 'noise cancelling headphones', 'standing desk'],
+        'teacher': ['document camera', 'laptop stand', 'noise cancelling headphones'],
+        'education': ['laptop stand', 'noise cancelling headphones'],
+        'agency': ['dual monitor', 'standing desk', 'ergonomic office chair'],
+        'e-commerce': ['label printer', 'thermal printer', '4k webcam'],
+        'product manager': ['ultrawide monitor', 'mechanical keyboard'],
+        'project manager': ['mechanical keyboard', 'ultrawide monitor'],
+        'startup': ['standing desk', 'external SSD', 'mechanical keyboard'],
+        'podcast': ['microphone', 'headphones', 'studio headphones'],
+    }
+
+    TOOL_PRODUCTS = {
+        'canva': 'graphics tablet', 'figma': 'graphics tablet', 'midjourney': 'graphics tablet',
+        'notion': 'mechanical keyboard', 'grammarly': 'mechanical keyboard', 'jasper': 'mechanical keyboard',
+        'clickup': 'ultrawide monitor', 'asana': 'ultrawide monitor', 'monday': 'standing desk',
+        'descript': 'microphone', 'hostinger': 'external SSD', 'ahrefs': 'dual monitor',
+        'semrush': 'dual monitor', 'surfer': 'dual monitor', 'convertkit': 'dual monitor',
+    }
+
+    PRODUCT_POOL = [
+        'mechanical keyboard', 'wireless mouse', 'laptop stand', 'USB-C hub',
+        'webcam', 'noise cancelling headphones', 'ultrawide monitor',
+        'ergonomic office chair', 'standing desk', 'external SSD',
+        '4k monitor', 'gaming headset', 'desk lamp', 'cable organizer',
+        'laptop backpack', 'mousepad', 'blue light glasses', 'smart speaker',
+        'graphics tablet', 'microphone', 'ring light', 'dual monitor'
+    ]
+
+    def _inject_inline_amazon_link(self, content: str, affiliate_links: List[Dict]) -> str:
+        """Insert one contextual Amazon CTA line inside the article body so the
+        affiliate link is visible while reading (not just in the end box)."""
+        amazon_links = [l for l in affiliate_links if 'amazon' in str(l.get('source', '')).lower()]
+        if not amazon_links:
+            return content
+        link = amazon_links[0]
+        cta = (
+            f"\n\n> **Looking to upgrade your setup?** "
+            f"[Check the latest price on Amazon]({link['url']}) "
+            f"— we may earn a small commission at no extra cost to you.\n\n"
+        )
+        marker = '\n---'
+        idx = content.rfind(marker)
+        if idx != -1:
+            return content[:idx] + cta + content[idx:]
+        return content.rstrip() + cta
+
     def _amazon_keywords(self, title: str, content: str = '') -> List[str]:
-        """Derive 1-2 Amazon search keywords per article, biased toward
-        physical tech products that convert on Amazon.de."""
-        product_pool = [
-            'mechanical keyboard', 'wireless mouse', 'laptop stand', 'USB-C hub',
-            'webcam', 'noise cancelling headphones', 'ultrawide monitor',
-            'ergonomic office chair', 'standing desk', 'external SSD',
-            '4k monitor', 'gaming headset', 'desk lamp', 'cable organizer',
-            'laptop backpack', 'mousepad', 'blue light glasses', 'smart speaker'
-        ]
-        
+        """Derive up to `links_per_article` Amazon search keywords per article,
+        biased toward physical tech products a real buyer in that niche buys."""
+        max_links = max(1, getattr(self.amazon, 'max_links', 2))
         text = f"{title} {content}".lower()
-        
-        # First: try to match a known product category from the article
-        for kw in product_pool:
-            first_word = kw.split()[0]
-            if first_word in text:
-                return [kw]
-        
-        # Second: use the main tool/brand keyword from the title
+        candidates = []
+
+        # 1) Audience / use-case match (highest conversion intent)
+        for phrase, products in self.AUDIENCE_PRODUCTS.items():
+            base = phrase.rstrip('s')
+            if phrase in text or base in text or base + 's' in text:
+                candidates.extend(products)
+                break
+
+        # 2) Known tool brand → relevant hardware
         tool_match = re.search(r'\b([A-Z][a-zA-Z0-9]+)', title)
-        if tool_match and not tool_match.group(1).lower() in {'best', 'top', 'review', 'free', 'ultimate', 'guide'}:
-            brand = tool_match.group(1)
-            if brand.lower() in {'canva', 'notion', 'grammarly', 'clickup', 'midjourney'}:
-                related = {
-                    'canva': 'tablet', 'notion': 'mechanical keyboard',
-                    'grammarly': 'mechanical keyboard', 'clickup': 'monitor',
-                    'midjourney': 'graphics tablet'
-                }
-                return [related[brand.lower()]]
-            return [brand]
-        
-        # Fallback: random hardware from the pool
-        return [random.choice(product_pool)]
+        if tool_match:
+            brand = tool_match.group(1).lower()
+            if brand in self.TOOL_PRODUCTS and self.TOOL_PRODUCTS[brand] not in candidates:
+                candidates.append(self.TOOL_PRODUCTS[brand])
+
+        # 3) Product category word present in the text
+        if not candidates:
+            for kw in self.PRODUCT_POOL:
+                first_word = kw.split()[0]
+                if first_word in text:
+                    candidates.append(kw)
+
+        # 4) Fallback: shuffled pool
+        if not candidates:
+            pool = list(self.PRODUCT_POOL)
+            random.shuffle(pool)
+            candidates = pool
+
+        # Dedupe and cap at max_links
+        seen = set()
+        result = []
+        for c in candidates:
+            if c not in seen:
+                seen.add(c)
+                result.append(c)
+            if len(result) >= max_links:
+                break
+        return result
     
     def _rewire_affiliate_anchors(self, content: str) -> str:
         """Convert `[text](#affiliate-tool)` markdown anchors to real program
