@@ -102,6 +102,12 @@
                 </div>
             </div>
             
+            {% if image %}
+            <div class="article-hero-image">
+                <img src="{{ image }}" alt="{{ title }}" loading="lazy">
+            </div>
+            {% endif %}
+            
             <div class="article-body">
                 {{ content|safe }}
             </div>

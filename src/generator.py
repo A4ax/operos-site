@@ -1116,8 +1116,13 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         }
         for placeholder, value in replacements.items():
             content = content.replace(placeholder, value)
-        # Catch any remaining [bracket] placeholders defensively
-        content = re.sub(r'\[[^\]]{0,40}\]', lambda m: replacements.get(m.group(0), 'the tool'), content)
+        # Catch any remaining [bracket] placeholders defensively,
+        # but NEVER touch markdown links like [text](url).
+        content = re.sub(
+            r'\[[^\]]{0,40}\](?!\()',
+            lambda m: replacements.get(m.group(0), 'the tool'),
+            content,
+        )
         return content
     
     def _extract_keywords(self, title: str) -> List[str]:

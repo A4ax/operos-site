@@ -277,6 +277,54 @@ body {
     width: fit-content;
 }
 
+.card-image {
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: -28px -28px 0;
+    line-height: 0;
+}
+
+.card-image img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
+.list-image {
+    flex: 0 0 90px;
+    height: 64px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    line-height: 0;
+}
+
+.list-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.list-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.article-hero-image {
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 0 auto 32px;
+    max-width: 100%;
+    line-height: 0;
+}
+
+.article-hero-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
 .article-card h3 {
     font-size: 1.2rem;
     font-weight: 700;

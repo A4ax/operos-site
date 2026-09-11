@@ -33,10 +33,15 @@
         <div class="category-articles">
             {% for article in articles %}
             <article class="article-list-item">
-                <h3><a href="/posts/{{ article.slug }}.html">{{ article.title }}</a></h3>
-                <div class="list-meta">
-                    <span>{{ article.published_at[:10] }}</span>
-                    <span>{{ article.estimated_read_time }} min read</span>
+                <div class="list-image">
+                    <img src="https://picsum.photos/seed/{{ article.slug }}/120/80" alt="{{ article.title }}" loading="lazy">
+                </div>
+                <div class="list-content">
+                    <h3><a href="/posts/{{ article.slug }}.html">{{ article.title }}</a></h3>
+                    <div class="list-meta">
+                        <span>{{ article.published_at[:10] }}</span>
+                        <span>{{ article.estimated_read_time }} min read</span>
+                    </div>
                 </div>
             </article>
             {% endfor %}

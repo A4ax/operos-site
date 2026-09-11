@@ -66,6 +66,9 @@
             <div class="article-grid">
                 {% for article in featured %}
                 <article class="article-card">
+                    <div class="card-image">
+                        <img src="https://picsum.photos/seed/{{ article.slug }}/600/340" alt="{{ article.title }}" loading="lazy">
+                    </div>
                     <div class="card-category">{{ article.category }}</div>
                     <h3><a href="/posts/{{ article.slug }}.html">{{ article.title }}</a></h3>
                     <div class="card-meta">
@@ -81,11 +84,16 @@
             <div class="article-list">
                 {% for article in recent %}
                 <article class="article-list-item">
-                    <div class="list-category">{{ article.category }}</div>
-                    <h3><a href="/posts/{{ article.slug }}.html">{{ article.title }}</a></h3>
-                    <div class="list-meta">
-                        <span>{{ article.published_at[:10] }}</span>
-                        <span>{{ article.estimated_read_time }} min read</span>
+                    <div class="list-image">
+                        <img src="https://picsum.photos/seed/{{ article.slug }}/120/80" alt="{{ article.title }}" loading="lazy">
+                    </div>
+                    <div class="list-content">
+                        <div class="list-category">{{ article.category }}</div>
+                        <h3><a href="/posts/{{ article.slug }}.html">{{ article.title }}</a></h3>
+                        <div class="list-meta">
+                            <span>{{ article.published_at[:10] }}</span>
+                            <span>{{ article.estimated_read_time }} min read</span>
+                        </div>
                     </div>
                 </article>
                 {% endfor %}

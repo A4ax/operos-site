@@ -129,7 +129,8 @@ class SiteBuilder:
             'categories': categories,
             'affiliate_disclosure': affiliate_disclosure,
             'current_year': datetime.now().year,
-            'related': related
+            'related': related,
+            'image': f'https://picsum.photos/seed/{article["slug"]}/800/450'
         }
         
         return template.render(**context)
