@@ -123,12 +123,12 @@ class ContentEngine:
         
         return cycle_result
     
-    def run_scheduled(self, interval_hours: int = None):
-        if interval_hours is None:
-            interval_hours = self.scheduler_config.get('run_every_hours', 6)
+    def run_scheduled(self, interval_minutes: int = None):
+        if interval_minutes is None:
+            interval_minutes = self.scheduler_config.get('run_every_minutes', 10)
         
         print(f"Content Engine starting...")
-        print(f"Running every {interval_hours} hours")
+        print(f"Running every {interval_minutes} minutes")
         print(f"Max articles: {self.max_total}")
         print(f"Press Ctrl+C to stop\n")
         
@@ -138,12 +138,12 @@ class ContentEngine:
             except Exception as e:
                 print(f"Fatal error: {e}")
             
-            print(f"\nNext run in {interval_hours} hours...")
+            print(f"\nNext run in {interval_minutes} minutes...")
             print(f"Total articles generated: {self.state.get('total_articles_generated', 0)}")
             print(f"Total deployed: {self.state.get('total_deployed', 0)}")
             print(f"Errors: {self.state.get('errors', 0)}")
             
-            time.sleep(interval_hours * 3600)
+            time.sleep(interval_minutes * 60)
 
 
 async def main():

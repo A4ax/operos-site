@@ -118,7 +118,7 @@
     "static_dir": "static"
   },
   "scheduler": {
-    "run_every_hours": 0.167,
+    "run_every_minutes": 10,
     "max_articles_per_run": 3,
     "max_total_articles": 5000,
     "health_check_interval_minutes": 30,

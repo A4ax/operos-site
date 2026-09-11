@@ -96,27 +96,84 @@ class SiteBuilder:
         return template.render(**context)
     
     def _process_content(self, content: str) -> str:
+        # Convert markdown to HTML
         lines = content.split('\n')
-        processed = []
+        html_lines = []
+        in_list = False
         in_table = False
         table_lines = []
         
         for line in lines:
+            # Handle tables
             if line.startswith('|'):
-                in_table = True
-                table_lines.append(line)
-            else:
                 if in_table and table_lines:
-                    processed.append(self._format_table(table_lines))
+                    html_lines.append(self._format_table(table_lines))
                     table_lines = []
                     in_table = False
-                
-                processed.append(line)
+                if not in_list:
+                    in_table = True
+                table_lines.append(line)
+                continue
+            
+            # Close table if we were in one
+            if in_table and table_lines:
+                html_lines.append(self._format_table(table_lines))
+                table_lines = []
+                in_table = False
+            
+            # Close list if we were in one
+            if in_list and not line.strip().startswith('- ') and not line.strip().startswith('* ') and line.strip():
+                html_lines.append('</ul>')
+                in_list = False
+            
+            stripped = line.strip()
+            
+            # Handle headers
+            if stripped.startswith('### '):
+                html_lines.append(f'<h4>{self._convert_inline(stripped[4:])}</h4>')
+            elif stripped.startswith('## '):
+                html_lines.append(f'<h2>{self._convert_inline(stripped[3:])}</h2>')
+            elif stripped.startswith('# '):
+                html_lines.append(f'<h1>{self._convert_inline(stripped[2:])}</h1>')
+            # Handle bullet lists
+            elif stripped.startswith('- ') or stripped.startswith('* '):
+                if not in_list:
+                    html_lines.append('<ul>')
+                    in_list = True
+                item_text = stripped[2:]
+                html_lines.append(f'<li>{self._convert_inline(item_text)}</li>')
+            # Handle horizontal rule
+            elif stripped == '---':
+                html_lines.append('<hr>')
+            # Handle empty lines
+            elif not stripped:
+                if in_list:
+                    html_lines.append('</ul>')
+                    in_list = False
+                continue
+            # Regular paragraph
+            else:
+                if in_list:
+                    html_lines.append('</ul>')
+                    in_list = False
+                html_lines.append(f'<p>{self._convert_inline(stripped)}</p>')
         
-        if table_lines:
-            processed.append(self._format_table(table_lines))
+        # Close any remaining open tags
+        if in_table and table_lines:
+            html_lines.append(self._format_table(table_lines))
+        if in_list:
+            html_lines.append('</ul>')
         
-        return '\n'.join(processed)
+        return '\n'.join(html_lines)
+    
+    def _convert_inline(self, text: str) -> str:
+        # Convert **bold** to <strong>
+        text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+        # Convert *italic* to <em>
+        text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
+        # Convert [text](url) to <a>
+        text = re.sub(r'\[(.+?)\]\((.+?)\)', r'<a href="\2">\1</a>', text)
+        return text
     
     def _format_table(self, lines: List[str]) -> str:
         html = '<div class="comparison-table">\n<table>\n<thead>\n<tr>\n'
