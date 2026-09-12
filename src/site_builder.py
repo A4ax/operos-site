@@ -411,9 +411,9 @@ Allow: /
             f.write(html)
 
     def _inject_in_content_ad(self, content: str) -> str:
-        """Insert an AdSense ad unit after the ~2nd paragraph of article body."""
+        """Insert an AdSense ad unit after the ~2nd paragraph of article body.
+        The adsbygoogle.js script is loaded once per page in the template."""
         ad_html = """<div class="in-article-ad">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8252348486522857" crossorigin="anonymous"></script>
 <!-- Operosads -->
 <ins class="adsbygoogle"
      style="display:block"
