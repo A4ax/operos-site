@@ -36,22 +36,55 @@ def newest_article():
     return arts[0]
 
 
-def post_pinterest(url, title, image_url):
+def get_board_id(token):
+    r = requests.get(
+        'https://api.pinterest.com/v5/boards',
+        headers={'Authorization': f'Bearer {token}'},
+        timeout=30,
+    )
+    items = (r.json() or {}).get('items', []) or []
+    if items:
+        return items[0]['id']
+    return None
+
+
+def post_pinterest(url, title, image_url, slug=None):
     token = os.environ.get('PINTEREST_TOKEN')
     if not token:
         return 'Pinterest: no token'
-    body = {
-        'board_id': os.environ.get('PINTEREST_BOARD_ID', ''),
-        'link': url,
-        'title': title,
-        'description': title,
-        'media_source': {'source_type': 'image_url', 'url': image_url},
-    }
+    board_id = os.environ.get('PINTEREST_BOARD_ID') or get_board_id(token)
+    if not board_id:
+        return 'Pinterest: no board found - create a board in the Pinterest UI first'
+
+    pin_path = None
+    if slug:
+        p = os.path.join(PROJECT_ROOT, 'data', 'pins', f'{slug}.jpg')
+        if os.path.exists(p):
+            pin_path = p
+
+    if pin_path:
+        import base64
+        data = base64.b64encode(open(pin_path, 'rb').read()).decode()
+        body = {
+            'board_id': board_id,
+            'link': url,
+            'title': title,
+            'description': title,
+            'media_source': {'source_type': 'image_base64', 'content_type': 'image/jpeg', 'data': data},
+        }
+    else:
+        body = {
+            'board_id': board_id,
+            'link': url,
+            'title': title,
+            'description': title,
+            'media_source': {'source_type': 'image_url', 'url': image_url},
+        }
     r = requests.post(
-        'https://api-sandbox.pinterest.com/v5/pins',
+        'https://api.pinterest.com/v5/pins',
         json=body,
         headers={'Authorization': f'Bearer {token}'},
-        timeout=30,
+        timeout=60,
     )
     return f'Pinterest: HTTP {r.status_code} {r.text[:150]}'
 
@@ -116,13 +149,15 @@ def main():
         url = sys.argv[1]
         title = sys.argv[2] if len(sys.argv) > 2 else 'New article on Operos'
         image = sys.argv[3] if len(sys.argv) > 3 else ''
+        slug = sys.argv[4] if len(sys.argv) > 4 else None
     else:
         a = newest_article()
         url = f'https://operos.de/posts/{a["slug"]}.html'
         title = a['title']
         image = a.get('image', '')
+        slug = a['slug']
     results = [
-        post_pinterest(url, title, image),
+        post_pinterest(url, title, image, slug),
         post_x(url, title),
         post_facebook(url, title),
         post_linkedin(url, title),

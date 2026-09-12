@@ -230,7 +230,7 @@ class DeployBot:
             image = newest.get('image', '')
             script = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'social_share.py')
             result = subprocess.run(
-                [sys.executable, script, url, title, image],
+                [sys.executable, script, url, title, image, slug],
                 capture_output=True,
                 text=True,
                 timeout=120,

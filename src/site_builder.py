@@ -246,7 +246,7 @@ class SiteBuilder:
             categories = list(set(a.get('category', 'AI Tools') for a in articles))
         
         featured = articles[:6]
-        recent = articles[:12]
+        recent = articles[6:18]  # exclude the featured articles so cards never duplicate
         categories = list(set(a.get('category', 'AI Tools') for a in articles))
         
         context = {
