@@ -414,13 +414,13 @@ Allow: /
         """Insert an AdSense ad unit after the ~2nd paragraph of article body.
         The adsbygoogle.js script is loaded once per page in the template."""
         ad_html = """<div class="in-article-ad">
-<!-- Operosads -->
+<!-- Operos In-Article Ad -->
 <ins class="adsbygoogle"
-     style="display:block"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
      data-ad-client="ca-pub-8252348486522857"
-     data-ad-slot="5134304927"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
+     data-ad-slot="4840313960"></ins>
 <script>
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
