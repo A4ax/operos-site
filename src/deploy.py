@@ -2,6 +2,7 @@ import os
 import json
 import subprocess
 import sys
+import time
 from datetime import datetime
 from typing import List, Dict
 
@@ -41,12 +42,17 @@ class DeployBot:
 
             vercel_output = ""
             if self.vercel_token:
-                vercel_output = self._vercel_deploy()
-                if not vercel_output:
-                    result['error'] = 'Vercel deploy failed'
-                    result['git_output'] = git_output
-                    self._log_deploy(result)
-                    return result
+                if self._deploy_due():
+                    vercel_output = self._vercel_deploy()
+                    if not vercel_output:
+                        result['error'] = 'Vercel deploy failed'
+                        result['git_output'] = git_output
+                        self._log_deploy(result)
+                        return result
+                    self._mark_deployed()
+                else:
+                    vercel_output = "Skipped (within deploy interval)"
+                    print(f"  {vercel_output}")
             else:
                 print("  VERCEL_TOKEN not set — skipping Vercel deploy (articles are committed to git)")
 
@@ -118,11 +124,11 @@ class DeployBot:
         try:
             if vercel_cli.endswith('.js'):
                 node = 'C:\\Program Files\\nodejs\\node.exe'
-                cmd = [node, vercel_cli, 'deploy', '--prod', '--token', self.vercel_token, '--force']
+                cmd = [node, vercel_cli, 'deploy', '--prod', '--token', self.vercel_token, '--force', '--archive=tgz']
             elif vercel_cli.endswith('.cmd'):
-                cmd = [vercel_cli, 'deploy', '--prod', '--token', self.vercel_token, '--force']
+                cmd = [vercel_cli, 'deploy', '--prod', '--token', self.vercel_token, '--force', '--archive=tgz']
             else:
-                cmd = ['vercel', 'deploy', '--prod', '--token', self.vercel_token, '--force']
+                cmd = ['vercel', 'deploy', '--prod', '--token', self.vercel_token, '--force', '--archive=tgz']
 
             result = subprocess.run(
                 cmd,
@@ -142,6 +148,26 @@ class DeployBot:
         except Exception as e:
             print(f"  Vercel deploy error: {e}")
             return ""
+
+    def _deploy_interval_minutes(self) -> int:
+        return int(self.config.get('scheduler', {}).get('deploy_interval_minutes', 60))
+
+    def _state_file(self):
+        return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'deploy_state.json')
+
+    def _deploy_due(self) -> bool:
+        try:
+            with open(self._state_file(), 'r') as f:
+                state = json.load(f)
+            last = state.get('last_deploy_epoch', 0)
+        except Exception:
+            last = 0
+        interval = self._deploy_interval_minutes() * 60
+        return (time.time() - last) >= interval
+
+    def _mark_deployed(self):
+        with open(self._state_file(), 'w') as f:
+            json.dump({'last_deploy_epoch': time.time()}, f)
 
     def _indexnow_submit(self) -> str:
         """Submit newest article URLs to IndexNow (instant Bing/Yandex/Seznam
