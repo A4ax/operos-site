@@ -24,10 +24,19 @@ These give you traffic *now* — before Google starts indexing. Do them in order
 
 ---
 
-## 2. X / Twitter (automatic)
+## 2. X / Twitter (automatic — needs paid Basic tier)
+
+> ⚠️ **Important:** Since Feb 2023, X only allows API posting on the **paid Basic tier ($100/month)**. Free tier is read-only. If you don't want to pay, share manually via the article buttons.
 
 1. Go to https://developer.x.com → create an app
-2. Get **Bearer Token** → add `X_BEARER_TOKEN=...` to `.env`
+2. Enable **User authentication** → set read **+ write** permissions
+3. Copy these 4 keys into `.env`:
+   ```
+   X_API_KEY=...
+   X_API_SECRET=...
+   X_ACCESS_TOKEN=...
+   X_ACCESS_SECRET=...
+   ```
 
 ---
 
@@ -43,15 +52,16 @@ These give you traffic *now* — before Google starts indexing. Do them in order
 
 ---
 
-## 4. LinkedIn (automatic)
+## 4. LinkedIn (automatic — free)
 
 1. Create a LinkedIn app: https://www.linkedin.com/developers/apps
-2. Get an access token with `w_member_social`
-3. Add to `.env`:
+2. In the app, add the **"Share on LinkedIn"** product (enables `w_member_social`)
+3. Get an access token with the **`w_member_social`** scope
+4. Add to `.env`:
    ```
    LINKEDIN_TOKEN=YOUR_TOKEN
-   LINKEDIN_URN=urn:li:person:YOUR_ID
    ```
+   (The bot auto-resolves your person URN — no need to set `LINKEDIN_URN`.)
 
 ---
 

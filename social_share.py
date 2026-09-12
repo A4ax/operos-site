@@ -90,16 +90,24 @@ def post_pinterest(url, title, image_url, slug=None):
 
 
 def post_x(url, title):
-    token = os.environ.get('X_BEARER_TOKEN')
-    if not token:
-        return 'X: no token'
+    """Post a tweet via X API v2 (OAuth 1.0a user context — requires the
+    paid Basic tier; Free tier cannot post)."""
+    api_key = os.environ.get('X_API_KEY')
+    api_secret = os.environ.get('X_API_SECRET')
+    acc_token = os.environ.get('X_ACCESS_TOKEN')
+    acc_secret = os.environ.get('X_ACCESS_SECRET')
+    if not all([api_key, api_secret, acc_token, acc_secret]):
+        return 'X: not configured (needs OAuth 1.0a keys + Basic tier)'
+    try:
+        from requests_oauthlib import OAuth1
+    except Exception:
+        return 'X: requests-oauthlib missing'
     text = f'{title} {url}'
-    # X API v2 create tweet (requires OAuth1a user context normally; this
-    # endpoint needs app-level OAuth2 with write scope).
+    auth = OAuth1(api_key, api_secret, acc_token, acc_secret)
     r = requests.post(
         'https://api.x.com/2/tweets',
         json={'text': text},
-        headers={'Authorization': f'Bearer {token}'},
+        auth=auth,
         timeout=30,
     )
     return f'X: HTTP {r.status_code} {r.text[:150]}'
@@ -122,7 +130,22 @@ def post_linkedin(url, title):
     token = os.environ.get('LINKEDIN_TOKEN')
     if not token:
         return 'LinkedIn: no token'
-    urn = os.environ.get('LINKEDIN_URN', 'urn:li:person:')
+    # Resolve the author URN if not provided (person).
+    urn = os.environ.get('LINKEDIN_URN', '')
+    if not urn:
+        try:
+            r = requests.get(
+                'https://api.linkedin.com/v2/userinfo',
+                headers={'Authorization': f'Bearer {token}'},
+                timeout=30,
+            )
+            sub = r.json().get('sub', '')
+            if sub:
+                urn = f'urn:li:person:{sub}'
+        except Exception:
+            pass
+    if not urn:
+        return 'LinkedIn: cannot resolve author URN'
     body = {
         'author': urn,
         'lifecycleState': 'PUBLISHED',
@@ -138,7 +161,7 @@ def post_linkedin(url, title):
     r = requests.post(
         'https://api.linkedin.com/v2/ugcPosts',
         json=body,
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
         timeout=30,
     )
     return f'LinkedIn: HTTP {r.status_code} {r.text[:150]}'
