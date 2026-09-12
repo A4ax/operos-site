@@ -2,6 +2,7 @@ import json
 import random
 import re
 import os
+import hashlib
 import requests
 from datetime import datetime
 from typing import List, Dict, Optional
@@ -24,9 +25,10 @@ class ContentGenerator:
         search_intent = topic.get('search_intent', 'commercial')
         
         if topic.get('topic_type') == 'amazon_product':
-            content = self._generate_product_roundup(title)
+            content, self._product_images = self._generate_product_roundup(title)
         else:
             content = self._generate_article_content(title, category, search_intent)
+            self._product_images = []
         content = self._clean_placeholders(content)
         content = self._rewire_affiliate_anchors(content)
         affiliate_links = self._insert_affiliate_links(title, content)
@@ -47,7 +49,7 @@ class ContentGenerator:
         }
         
         article['word_count'] = len(article['content'].split())
-        article['image'] = self._resolve_article_image(title, category, article['affiliate_links'])
+        article['image'] = self._resolve_article_image(title, category, article['affiliate_links'], article['slug'])
         
         return article
     
@@ -681,7 +683,7 @@ Now that you've mastered the basics:
                 return product
         return ''
 
-    def _generate_product_roundup(self, title: str) -> str:
+    def _generate_product_roundup(self, title: str):
         product = self._extract_product(title)
         if not product:
             product = 'noise cancelling headphones'
@@ -692,16 +694,21 @@ Now that you've mastered the basics:
             import urllib.parse
             return f'https://amazon.de/s?k={urllib.parse.quote(term)}&tag={self.amazon.partner_tag}'
 
+        brand_images = []
+
         def resolved_link(term):
             """Always prefer a real /dp/<ASIN> product link. Tries the exact
             term, then the base product keyword, then (last resort) a search
-            link."""
+            link. Collects the product image for uniqueness."""
             for t in (term, product):
                 if not t:
                     continue
                 products = self.amazon.search_products(t, max_items=1)
                 if products and products[0].get('asin'):
-                    return products[0]['url'], products[0].get('title', term)
+                    p = products[0]
+                    if p.get('image'):
+                        brand_images.append(p['image'])
+                    return p['url'], p.get('title', term)
             return amazon_link(term), term
 
         content = f"""# {title}
@@ -754,7 +761,7 @@ We recommend buying from Amazon for reliable delivery, easy returns, and good cu
 
 The best {product} for you depends on your budget and needs. Every option on our list is a solid choice — start with the one that fits your budget, read the reviews, and buy with confidence.
 """
-        return content
+        return content, brand_images
 
     def _generate_general_article(self, title: str, category: str) -> str:
         year = datetime.now().year
@@ -977,7 +984,7 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         links = []
         try:
             tech = self.awin.tech_retail_links()
-            for name, url in list(tech.items())[:2]:
+            for name, url in list(tech.items())[:3]:
                 links.append({
                     'text': f'Compare prices at {name}',
                     'url': url,
@@ -1149,15 +1156,28 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
         )
         return content
     
-    def _resolve_article_image(self, title: str, category: str, affiliate_links: List[Dict]) -> str:
-        """Pick a product-relevant image: real Amazon product image first,
-        then a keyword-based stock image, then a generic fallback."""
-        for link in affiliate_links:
-            if link.get('image') and 'amazon' in str(link.get('source', '')).lower():
-                return link['image']
-        product = self._extract_product(title)
-        keyword = product or re.sub(r'\s+', '-', category.lower())
-        return f'https://loremflickr.com/800/450/{requests.utils.quote(keyword)}'
+    def _resolve_article_image(self, title: str, category: str, affiliate_links: List[Dict], slug: str = '') -> str:
+        """Pick a unique, relevant image per article:
+        - Buyers guides: one of the article's resolved product photos
+          (chosen deterministically by slug so articles differ).
+        - SaaS/tools: a keyword stock image, locked per-slug for uniqueness."""
+        prod_imgs = list(dict.fromkeys(getattr(self, '_product_images', []) or []))
+        if prod_imgs:
+            idx = sum(ord(c) for c in slug) % len(prod_imgs)
+            return prod_imgs[idx]
+
+        tool = self._extract_tool(title)
+        keyword = tool or re.sub(r'\s+', '-', category.lower())
+        lock = int(hashlib.md5(slug.encode('utf-8')).hexdigest(), 16) % 100000
+        return f'https://loremflickr.com/800/450/{requests.utils.quote(keyword)}?lock={lock}'
+
+    def _extract_tool(self, title: str) -> str:
+        """Return the main tool/brand from a SaaS article title ('' if none)."""
+        stop = {'best', 'top', 'review', 'free', 'ultimate', 'guide', 'the', 'how', 'vs', 'for', 'in', 'to', 'and'}
+        m = re.search(r'\b([A-Z][A-Za-z0-9.]{1,20})', title)
+        if m and m.group(1).lower() not in stop:
+            return m.group(1)
+        return ''
 
     def _extract_keywords(self, title: str) -> List[str]:
         words = re.findall(r'[a-zA-Z\u00C0-\u024F]+', title)

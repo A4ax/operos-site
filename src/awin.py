@@ -92,12 +92,12 @@ class Awin:
         return programme.get('clickThroughUrl', '')
 
     def tech_retail_links(self):
-        """German/European electronics retailers to pair with Amazon on
-        product buyers guides."""
-        names = ['notebooksbilliger', 'MediaMarkt', 'Alternate', 'Computeruniverse', 'Laptops Direct', 'MediaMarkt CH']
+        """German electronics retailers to pair with Amazon on product
+        buyers guides. Prioritises German (DE) programmes."""
+        targets = ['notebooksbilliger DE/AT', 'cyberport DE', 'Computeruniverse DE']
         found = {}
-        for n in names:
-            matches = self.search(n, limit=1)
+        for name in targets:
+            matches = self.search(name, limit=1)
             if matches:
                 found[matches[0]['name']] = matches[0].get('clickThroughUrl', '')
         return found

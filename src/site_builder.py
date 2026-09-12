@@ -174,11 +174,11 @@ class SiteBuilder:
             
             # Handle headers
             if stripped.startswith('### '):
-                html_lines.append(f'<h4>{self._convert_inline(stripped[4:])}</h4>')
+                html_lines.append(f'<h4 id="{self._slugify(stripped[4:])}">{self._convert_inline(stripped[4:])}</h4>')
             elif stripped.startswith('## '):
-                html_lines.append(f'<h2>{self._convert_inline(stripped[3:])}</h2>')
+                html_lines.append(f'<h2 id="{self._slugify(stripped[3:])}">{self._convert_inline(stripped[3:])}</h2>')
             elif stripped.startswith('# '):
-                html_lines.append(f'<h1>{self._convert_inline(stripped[2:])}</h1>')
+                html_lines.append(f'<h1 id="{self._slugify(stripped[2:])}">{self._convert_inline(stripped[2:])}</h1>')
             # Handle bullet lists
             elif stripped.startswith('- ') or stripped.startswith('* '):
                 if not in_list:
@@ -513,6 +513,13 @@ Allow: /
             except Exception as e:
                 print(f"Warning: Could not render {output_name}: {e}")
     
+    def _slugify(self, text: str) -> str:
+        slug = text.lower()
+        slug = re.sub(r'[^\w\s-]', '', slug)
+        slug = re.sub(r'[\s]+', '-', slug)
+        slug = slug.strip('-')
+        return slug
+
     def _generate_slug(self, title: str) -> str:
         slug = title.lower()
         slug = re.sub(r'[^\w\s-]', '', slug)
