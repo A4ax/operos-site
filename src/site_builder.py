@@ -500,6 +500,15 @@ Allow: /
                     'site_name': self.site_config.get('name', 'Operos'),
                     'site_domain': self.site_config.get('domain', 'operos.de')
                 }
+            },
+            'about.html': {
+                'template': 'about.html',
+                'context': {
+                    'site_name': self.site_config.get('name', 'Operos'),
+                    'site_domain': self.site_config.get('domain', 'operos.de'),
+                    'site_description': self.site_config.get('description', ''),
+                    'current_year': datetime.now().year
+                }
             }
         }
         

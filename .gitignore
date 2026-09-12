@@ -14,3 +14,4 @@ SETUP.md
 client_secret*.json
 token.json
 
+data/pins/

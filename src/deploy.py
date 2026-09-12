@@ -64,6 +64,9 @@ class DeployBot:
             indexnow_output = self._indexnow_submit()
             result['indexnow_output'] = indexnow_output
 
+            social_output = self._social_share(articles)
+            result['social_output'] = social_output
+
         except Exception as e:
             result['error'] = str(e)
             print(f"Deploy error: {e}")
@@ -206,6 +209,40 @@ class DeployBot:
             return f"IndexNow: HTTP {r.status_code} {r.text[:200]}"
         except Exception as e:
             return f"IndexNow: error {e}"
+
+    def _social_share(self, articles: List[Dict]) -> str:
+        """Share the newest article once (only when it changes)."""
+        try:
+            state_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'social_state.json')
+            try:
+                with open(state_file, 'r') as f:
+                    state = json.load(f)
+            except Exception:
+                state = {}
+            if not articles:
+                return 'Social: no articles'
+            newest = max(articles, key=lambda a: a.get('published_at', ''))
+            slug = newest.get('slug', '')
+            if state.get('last_shared') == slug:
+                return 'Social: already shared'
+            url = f'https://{self.site_config.get("domain", "operos.de")}/posts/{slug}.html'
+            title = newest.get('title', slug)
+            image = newest.get('image', '')
+            script = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'social_share.py')
+            result = subprocess.run(
+                [sys.executable, script, url, title, image],
+                capture_output=True,
+                text=True,
+                timeout=120,
+                cwd=os.path.dirname(os.path.dirname(__file__)),
+            )
+            state['last_shared'] = slug
+            with open(state_file, 'w') as f:
+                json.dump(state, f, indent=2)
+            out = (result.stdout or '') + (result.stderr or '')
+            return f"Social: {out.strip()[:400]}"
+        except Exception as e:
+            return f'Social: error {e}'
 
     def _log_deploy(self, result: Dict):
         log_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'deploy_history.json')

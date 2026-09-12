@@ -810,6 +810,8 @@ body {
 .share-btn.twitter { background: #1da1f2; }
 .share-btn.facebook { background: #4267b2; }
 .share-btn.linkedin { background: #0077b5; }
+.share-btn.pinterest { background: #bd081c; }
+.share-btn.reddit { background: #ff4500; }
 
 .affiliate-disclosure {
     background: linear-gradient(135deg, var(--accent-light), #fef9c3);
