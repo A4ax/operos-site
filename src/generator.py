@@ -693,10 +693,15 @@ Now that you've mastered the basics:
             return f'https://amazon.de/s?k={urllib.parse.quote(term)}&tag={self.amazon.partner_tag}'
 
         def resolved_link(term):
-            """Prefer a real /dp/<ASIN> product link; fall back to search link."""
-            products = self.amazon.search_products(term, max_items=1)
-            if products and products[0].get('asin'):
-                return products[0]['url'], products[0].get('title', term)
+            """Always prefer a real /dp/<ASIN> product link. Tries the exact
+            term, then the base product keyword, then (last resort) a search
+            link."""
+            for t in (term, product):
+                if not t:
+                    continue
+                products = self.amazon.search_products(t, max_items=1)
+                if products and products[0].get('asin'):
+                    return products[0]['url'], products[0].get('title', term)
             return amazon_link(term), term
 
         content = f"""# {title}
@@ -720,10 +725,7 @@ We compared {len(brands)} popular {product} options across price, features, buil
 
 """
         for i, brand in enumerate(brands, 1):
-            if i <= 3:
-                link, link_title = resolved_link(f'{brand} {product}')
-            else:
-                link, link_title = amazon_link(f'{brand} {product}'), f'{brand} {product}'
+            link, link_title = resolved_link(f'{brand} {product}')
             content += f"""## {i}. {brand} {product.title()} — Top Pick {i}
 
 **Price:** See the current price on Amazon.
@@ -746,7 +748,7 @@ Decide on a realistic budget first. The best value isn't always the cheapest or 
 - **Warranty & support:** A good warranty protects your purchase.
 
 ### 3. Where to Buy
-We recommend buying from Amazon for reliable delivery, easy returns, and good customer service. [Browse the full range of {product}]({amazon_link(product)}).
+We recommend buying from Amazon for reliable delivery, easy returns, and good customer service. [See the top-rated {product} on Amazon]({resolved_link(product)[0]}).
 
 ## Final Verdict
 
@@ -894,21 +896,29 @@ Don't be afraid to try a few before committing. Most tools offer free trials or 
     def _build_amazon_links(self, title: str, content: str = '') -> List[Dict]:
         """Generate Amazon affiliate links from article keywords.
         Uses PA-API for real ASINs when credentials are present, otherwise
-        falls back to automatic keyword-search links."""
+        resolves real ASINs by scraping, with keyword-search links as a
+        last-resort fallback (never cached)."""
         keywords = self._amazon_keywords(title, content)
+        product = self._extract_product(title)
         links = []
         for keyword in keywords:
             products = self.amazon.search_products(keyword, max_items=1)
-            for product in products:
+            # If a keyword produced only a search fallback but this is a
+            # product article, re-resolve using the base product keyword.
+            if products and products[0].get('source') == 'amazon-keyword' and product:
+                base = self.amazon.search_products(product, max_items=1)
+                if base and base[0].get('asin'):
+                    products = base
+            for prod in products:
                 links.append({
-                    'text': self.amazon.build_link_text(product),
-                    'url': product['url'],
-                    'asin': product.get('asin'),
-                    'price': product.get('price'),
-                    'image': product.get('image', ''),
+                    'text': self.amazon.build_link_text(prod),
+                    'url': prod['url'],
+                    'asin': prod.get('asin'),
+                    'price': prod.get('price'),
+                    'image': prod.get('image', ''),
                     'tool': keyword,
                     'commission': 'Amazon Associates',
-                    'source': product.get('source', 'amazon')
+                    'source': prod.get('source', 'amazon')
                 })
         return links
     
