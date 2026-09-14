@@ -84,6 +84,27 @@ class ContentEngine:
             product_topics = [t for t in topics if t.get('topic_type') == 'amazon_product']
             saas_topics = [t for t in topics if t.get('topic_type') != 'amazon_product']
             target_product = max(1, int(max_articles * 0.66))
+
+            # Cap redundant articles per product (avoid 8 near-identical guides)
+            product_cap = self.scheduler_config.get('max_articles_per_product', 4)
+            if product_cap > 0:
+                from src.generator import ContentGenerator
+                _g = ContentGenerator(self.config)
+                existing = {}
+                try:
+                    with open(articles_json, 'r', encoding='utf-8') as f:
+                        for ea in json.load(f):
+                            prod = _g._extract_product(ea.get('title', ''))
+                            if prod:
+                                existing[prod] = existing.get(prod, 0) + 1
+                except Exception:
+                    pass
+                product_topics = [
+                    t for t in product_topics
+                    if existing.get(_g._extract_product(t.get('title', '')), 0) < product_cap
+                ]
+                target_product = min(target_product, len(product_topics))
+
             selected = product_topics[:target_product] + saas_topics[:max_articles - target_product]
             if not selected:
                 selected = topics[:max_articles]

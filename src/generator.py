@@ -696,19 +696,34 @@ Now that you've mastered the basics:
 
         brand_images = []
 
-        def resolved_link(term):
-            """Always prefer a real /dp/<ASIN> product link. Tries the exact
-            term, then the base product keyword, then (last resort) a search
-            link. Collects the product image for uniqueness."""
-            for t in (term, product):
-                if not t:
-                    continue
-                products = self.amazon.search_products(t, max_items=1)
-                if products and products[0].get('asin'):
-                    p = products[0]
-                    if p.get('image'):
-                        brand_images.append(p['image'])
-                    return p['url'], p.get('title', term)
+        def resolved_link(term, brand=None):
+            """Always prefer a real /dp/<ASIN> product link and grow the image
+            pool so different brands get different photos. Tries the exact
+            term, then the brand, then the base product (choosing a not-yet-
+            used image), then (last resort) a search link."""
+            variants = [term]
+            if brand and brand != term:
+                variants.append(brand)
+            if product not in variants:
+                variants.append(product)
+            for t in variants:
+                try:
+                    products = self.amazon.search_products(t, max_items=3)
+                except Exception:
+                    products = []
+                for p in products:
+                    if p.get('asin'):
+                        img = p.get('image', '')
+                        if img:
+                            brand_images.append(img)
+                        return p['url'], p.get('title', term)
+            # Last resort: base product, prefer a photo not already used
+            for p in self.amazon.search_products(product, max_items=5):
+                if p.get('asin'):
+                    img = p.get('image', '')
+                    if img and img not in brand_images:
+                        brand_images.append(img)
+                        return p['url'], p.get('title', term)
             return amazon_link(term), term
 
         content = f"""# {title}
@@ -732,7 +747,7 @@ We compared {len(brands)} popular {product} options across price, features, buil
 
 """
         for i, brand in enumerate(brands, 1):
-            link, link_title = resolved_link(f'{brand} {product}')
+            link, link_title = resolved_link(f'{brand} {product}', brand)
             content += f"""## {i}. {brand} {product.title()} — Top Pick {i}
 
 **Price:** See the current price on Amazon.

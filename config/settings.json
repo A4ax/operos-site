@@ -140,7 +140,8 @@
     "max_total_articles": 5000,
     "health_check_interval_minutes": 30,
     "windows_service_name": "OperosContentEngine",
-    "deploy_interval_minutes": 60
+    "deploy_interval_minutes": 60,
+    "max_articles_per_product": 4
   },
   "indexnow": {
     "enabled": true,
